@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Redirecting... - Dorm Near Me!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #9b86bd;
+            --nav-purple: #9154f1;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .loading-container {
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--purple);
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="loading-container" id="status-box">
+        <div class="spinner"></div>
+        <p id="status-text">กำลังตรวจสอบสถานะการเข้าสู่ระบบ...</p>
+        <button id="manual-login-btn" class="hidden"
+            style="background: #9154f1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+            เข้าสู่ระบบด้วย Google
+        </button>
+    </div>
+
+    <script type="module">
+        // Import the specific tools from your updated auth.js
+        import { auth, loginWithGoogle } from './auth.js';
+        // Match the version 10.8.0 from your auth.js
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const statusText = document.getElementById('status-text');
+        const loginBtn = document.getElementById('manual-login-btn');
+
+        // Monitor Auth State
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                statusText.innerText = "เข้าสู่ระบบแล้ว! กำลังนำคุณไปหน้าเพิ่มข้อมูล...";
+                window.location.href = 'add-dorm.html';
+            } else {
+                statusText.innerText = "โปรดเข้าสู่ระบบเพื่อเพิ่มข้อมูลหอพัก";
+                loginBtn.classList.remove('hidden');
+                loginBtn.style.display = "block";
+            }
+        });
+
+        // Manual Login button now calls the exported function
+        loginBtn.addEventListener('click', async () => {
+            try {
+                await loginWithGoogle();
+            } catch (error) {
+                console.error("Login failed:", error);
+                alert("ไม่สามารถเข้าสู่ระบบได้: " + error.message);
+            }
+        });
+    </script>
+</body>
+
+</html>

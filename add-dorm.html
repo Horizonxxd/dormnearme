@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Add Dorm - Dorm Near Me!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #9b86bd;
+            --light-purple: #e2d5f3;
+            --nav-purple: #9154f1;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .top-banner {
+            background-color: var(--nav-purple);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        /* Updated Navbar for Login Alignment */
+        .navbar {
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            color: #555;
+            font-weight: 400;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-item:hover {
+            color: var(--purple);
+        }
+
+        .nav-item.active {
+            border-bottom: 3px solid var(--purple);
+            color: var(--purple);
+            font-weight: bold;
+        }
+
+        /* Auth UI Components */
+        #auth-section {
+            display: flex;
+            align-items: center;
+            border-left: 1px solid #eee;
+            padding-left: 20px;
+        }
+
+        .btn-login-google {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Kanit';
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-login-google:hover {
+            background: #f5f5f5;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--purple);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-grid {
+            display: flex;
+            gap: 40px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .form-column {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-family: 'Kanit';
+            font-size: 16px;
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            border-color: var(--purple);
+            outline: none;
+            box-shadow: 0 0 5px rgba(155, 134, 189, 0.4);
+        }
+
+        .form-textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        .checkbox-block {
+            background-color: var(--purple);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .checkbox-label-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .distance-input-container {
+            margin-top: 2px;
+            margin-bottom: 5px;
+            padding-left: 22px;
+        }
+
+        .distance-field {
+            width: 100px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-family: 'Kanit';
+            font-size: 12px;
+            box-sizing: border-box;
+        }
+
+        .multi-select-container {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .multi-select-list {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .btn-purple {
+            background-color: var(--purple);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 20px;
+            font-family: 'Kanit';
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-purple:hover {
+            background-color: var(--nav-purple);
+            transform: translateY(-2px);
+        }
+
+        .btn-purple:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-large-upload {
+            background-color: var(--purple);
+            color: white;
+            border: none;
+            padding: 20px;
+            width: 100%;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+            font-family: 'Kanit';
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-banner">ข้อมูลที่รวบรวมมาจาก Facebook และ google map โปรดตรวจสอบข้อมูลอีกครั้ง</div>
+
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="index.html" class="nav-item">ค้นหาหอพัก</a>
+            <a href="add-info.html" class="nav-item active">เพิ่มข้อมูล</a>
+            <a href="map.html" class="nav-item">แผนที่</a>
+            <a href="contact.html" class="nav-item">ติดต่อเรา</a>
+        </div>
+
+        <div id="auth-section">
+            <button id="btn-login" class="btn-login-google">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg"
+                    style="width:18px; margin-right:8px;">
+                Login
+            </button>
+            <div id="user-info" class="hidden" style="display:flex; align-items:center; gap:10px;">
+                <img id="user-photo" src="" class="user-avatar">
+                <button id="btn-logout"
+                    style="background:none; border:none; color:red; cursor:pointer; font-size:12px; font-family:'Kanit';">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-grid">
+            <div class="form-column">
+                <div class="form-group">
+                    <label class="form-label">Upload (สูงสุด 10 รูป)</label>
+                    <input type="file" id="actual-upload" accept="image/*" multiple style="display: none;">
+                    <button type="button" class="btn-large-upload"
+                        onclick="document.getElementById('actual-upload').click()">+ Upload Pictures</button>
+                    <div id="preview-gallery"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 15px;">
+                    </div>
+                    <p id="file-count" style="font-size: 12px; color: #777; text-align: center;"></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ชื่อหอพัก</label>
+                    <input type="text" id="dorm-name" class="form-input" placeholder="กรอกชื่อหอพัก">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">รายละเอียด</label>
+                    <textarea id="dorm-details" class="form-input form-textarea"
+                        placeholder="กรอกรายละเอียด"></textarea>
+                </div>
+            </div>
+
+            <div class="form-column">
+                <div class="checkbox-block">
+                    <h4>สถานที่รอบ ๆ</h4>
+                    <div class="checkbox-grid" id="near-places">
+                        <div class="checkbox-item">
+                            <label class="checkbox-label-wrapper"><input type="checkbox" value="7-11" onchange="toggleDistanceInput(this, 'sevenEleven')"> 7-11</label>
+                            <div class="distance-input-container hidden" id="dist-sevenEleven">
+                                <input type="number" class="distance-field" placeholder="ระยะทาง (เมตร)">
+                            </div>
+                        </div>
+                        <div class="checkbox-item">
+                            <label class="checkbox-label-wrapper"><input type="checkbox" value="ร้านขายยา" onchange="toggleDistanceInput(this, 'pharma')"> ร้านขายยา</label>
+                            <div class="distance-input-container hidden" id="dist-pharma">
+                                <input type="number" class="distance-field" placeholder="ระยะทาง (เมตร)">
+                            </div>
+                        </div>
+                        <div class="checkbox-item">
+                            <label class="checkbox-label-wrapper"><input type="checkbox" value="ตลาด" onchange="toggleDistanceInput(this, 'market')"> ตลาด</label>
+                            <div class="distance-input-container hidden" id="dist-market">
+                                <input type="number" class="distance-field" placeholder="ระยะทาง (เมตร)">
+                            </div>
+                        </div>
+                        <div class="checkbox-item">
+                            <label class="checkbox-label-wrapper"><input type="checkbox" value="ร้านซักอบผ้า" onchange="toggleDistanceInput(this, 'laundry')"> ร้านซักอบผ้า</label>
+                            <div class="distance-input-container hidden" id="dist-laundry">
+                                <input type="number" class="distance-field" placeholder="ระยะทาง (เมตร)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkbox-block">
+                    <h4>สิ่งอำนวยความสะดวก</h4>
+                    <div class="checkbox-grid" id="room-amenities">
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="แอร์"> แอร์</label>
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="ตู้เย็น"> ตู้เย็น</label>
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="ไมโครเวฟ"> ไมโครเวฟ</label>
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="เครื่องทำน้ำอุ่น"> เครื่องทำน้ำอุ่น</label>
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="โต๊ะเขียนหนังสือ"> โต๊ะเขียนหนังสือ</label>
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="ตู้เสื้อผ้า"> ตู้เสื้อผ้า</label>
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="พัดลม"> พัดลม</label>
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="ทีวี"> ทีวี</label>
+                        <label class="checkbox-item" style="flex-direction:row; align-items:center;"><input type="checkbox" value="ตู้กับข้าว"> ตู้กับข้าว</label>
+                    </div>
+                </div>
+
+                <div class="multi-select-container">
+                    <div class="multi-select-column">
+                        <h4>ประเภทหอพัก</h4>
+                        <div class="multi-select-list" id="dorm-type">
+                            <label><input type="radio" name="dtype" value="หอรวม"> หอรวม</label>
+                            <label><input type="radio" name="dtype" value="หอหญิง"> หอหญิง</label>
+                            <label><input type="radio" name="dtype" value="หอชาย"> หอชาย</label>
+                        </div>
+                    </div>
+                    <div class="multi-select-column">
+                        <h4>โซนที่พักอาศัย</h4>
+                        <div class="multi-select-list" id="dorm-zone">
+                            <label><input type="radio" name="dzone" value="ฝั่งมอ"> ฝั่งมอ</label>
+                            <label><input type="radio" name="dzone" value="ฝั่งตรงข้ามมอ"> ฝั่งตรงข้ามมอ</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-column">
+                <div class="form-group">
+                    <label class="form-label">เบอร์โทร</label>
+                    <input type="text" id="phone-input" class="form-input" placeholder="0812345678" maxlength="10">
+                    <small id="phone-error" style="color: #ff4444; display: none;">กรุณากรอกตัวเลข 10 หลัก</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ราคาเช่า (บาท/เดือน)</label>
+                    <input type="number" id="dorm-price" class="form-input" placeholder="เช่น 4500">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ระยะทางจากมหาวิทยาลัย (เมตร)</label>
+                    <input type="number" id="uni-distance" class="form-input" placeholder="เช่น 500">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">กฎของหอพัก</label>
+                    <textarea id="dorm-rules" class="form-input form-textarea"
+                        placeholder="เช่น ห้ามเลี้ยงสัตว์"></textarea>
+                </div>
+
+                <button class="btn-purple" id="save-btn">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDistanceInput(checkbox, targetId) {
+            const inputDiv = document.getElementById('dist-' + targetId);
+            if (checkbox.checked) {
+                inputDiv.classList.remove('hidden');
+            } else {
+                inputDiv.classList.add('hidden');
+                inputDiv.querySelector('input').value = '';
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { app, initAuth } from './auth.js';
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        // Initialize services using the shared 'app' from auth.js
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const auth = getAuth(app); 
+
+        // Start Auth UI logic
+        initAuth();
+
+        let selectedFiles = [];
+        const actualBtn = document.getElementById('actual-upload');
+        const previewGallery = document.getElementById('preview-gallery');
+
+        actualBtn.addEventListener('change', function () {
+            const newFiles = Array.from(this.files);
+            selectedFiles = [...selectedFiles, ...newFiles].slice(0, 10);
+            renderPreviews();
+        });
+
+        function renderPreviews() {
+            previewGallery.innerHTML = "";
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const div = document.createElement('div');
+                    div.style = "position:relative; width:80px; height:80px; border:1px solid #ddd; border-radius:8px; overflow:hidden;";
+                    div.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">
+                                     <button id="remove-${index}" style="position:absolute; top:0; right:0; background:red; color:white; border:none; cursor:pointer;">×</button>`;
+                    previewGallery.appendChild(div);
+
+                    document.getElementById(`remove-${index}`).onclick = () => {
+                        selectedFiles.splice(index, 1);
+                        renderPreviews();
+                    };
+                }
+                reader.readAsDataURL(file);
+            });
+            document.getElementById('file-count').innerText = `เลือกแล้ว ${selectedFiles.length} รูป`;
+        }
+
+        // Handle Save Logic
+        document.getElementById('save-btn').onclick = async function () {
+            const saveBtn = document.getElementById('save-btn');
+            const phone = document.getElementById('phone-input').value;
+            const dormName = document.getElementById('dorm-name').value;
+
+            // 1. Validation Checks
+            if (!auth.currentUser) { 
+                alert("กรุณาเข้าสู่ระบบด้วย Google ก่อนบันทึกข้อมูล!"); 
+                return; 
+            }
+            if (!dormName.trim()) { 
+                alert("กรุณากรอกชื่อหอพัก"); 
+                return; 
+            }
+            if (phone.length !== 10) { 
+                alert("กรุณากรอกเบอร์โทรให้ครบ 10 หลัก"); 
+                return; 
+            }
+            if (selectedFiles.length === 0) { 
+                alert("กรุณาอัปโหลดรูปภาพอย่างน้อย 1 รูป"); 
+                return; 
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.innerText = "กำลังอัปโหลดรูปภาพ...";
+
+            try {
+                // Generate a custom ID beforehand so we can use it for the storage path
+                const listingsRef = collection(db, "listings");
+                const newDormDoc = doc(listingsRef);
+                const dormId = newDormDoc.id;
+
+                // 2. Upload file stream array straight into Firebase Storage with dynamic sequence names
+                const imageUrls = [];
+                let imgCounter = 1;
+                for (const file of selectedFiles) {
+                    // Forcing standard naming sequence: image1.jpg, image2.jpg...
+                    const fixedFileName = `image${imgCounter}.jpg`;
+                    const storageRef = ref(storage, `dorms/${dormId}/${fixedFileName}`);
+                    
+                    await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(storageRef);
+                    imageUrls.push(url);
+                    imgCounter++;
+                }
+
+                saveBtn.innerText = "กำลังบันทึกข้อมูล...";
+
+                // 3. Collect value states from HTML checkbox selectors 
+                const nearPlaces = Array.from(document.querySelectorAll('#near-places input[type="checkbox"]:checked'))
+                                       .map(cb => cb.value);
+                const roomAmenities = Array.from(document.querySelectorAll('#room-amenities input:checked'))
+                                         .map(cb => cb.value);
+
+                // Map out individual distance entries if available
+                const distances = {
+                    sevenEleven: Number(document.querySelector('#dist-sevenEleven input').value) || 0,
+                    pharma: Number(document.querySelector('#dist-pharma input').value) || 0,
+                    market: Number(document.querySelector('#dist-market input').value) || 0,
+                    laundry: Number(document.querySelector('#dist-laundry input').value) || 0
+                };
+
+                // 4. Build complete document schema
+                const data = {
+                    name: dormName,
+                    details: document.getElementById('dorm-details').value,
+                    price: Number(document.getElementById('dorm-price').value) || 0,
+                    distance: Number(document.getElementById('uni-distance').value) || 0,
+                    phone: phone,
+                    rules: document.getElementById('dorm-rules').value,
+                    images: imageUrls,
+                    nearPlaces: nearPlaces,       // Saved cleanly as string arrays
+                    distances: distances,         // Distance configurations in meters map schema
+                    amenities: roomAmenities,     // Saved cleanly as string arrays
+                    zone: document.querySelector('input[name="dzone"]:checked')?.value || "ไม่ระบุ",
+                    type: document.querySelector('input[name="dtype"]:checked')?.value || "ไม่ระบุ",
+                    createdBy: auth.currentUser.uid, // Track submission identity
+                    timestamp: new Date()
+                };
+
+                // 5. Commit record package directly to production Firestore collection using predefined ID
+                await setDoc(newDormDoc, data);
+
+                alert("บันทึกสำเร็จ! 🎉");
+                window.location.href = "index.html";
+            } catch (e) {
+                console.error("Submission failed: ", e);
+                alert("เกิดข้อผิดพลาด: " + e.message);
+                saveBtn.disabled = false;
+                saveBtn.innerText = "บันทึกข้อมูล";
+            }
+        };
+    </script>
+</body>
+
+</html>

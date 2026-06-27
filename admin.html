@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Dorm Near Me!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #9b86bd;
+            --nav-purple: #9154f1;
+            --light-purple: #e2d5f3;
+            --approve-green: #7ed957;
+            --edit-yellow: #ffde59;
+            --reject-red: #ff5757;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #f9f9f9;
+            margin: 0;
+            padding-top: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .admin-container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            padding: 20px 50px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        /* Left Column: Pending Cards */
+        .pending-section h2 {
+            color: #333;
+            font-size: 20px;
+        }
+
+        .dorm-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            border: 2px solid var(--light-purple);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .dorm-info {
+            flex: 1;
+        }
+
+        .dorm-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+        }
+
+        .dorm-info p {
+            margin: 2px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .action-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-action {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: 'Kanit';
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .btn-approve {
+            background: var(--approve-green);
+            color: #1a4d00;
+        }
+
+        .btn-reject {
+            background: var(--reject-red);
+            color: white;
+        }
+
+        /* Right Column: Stats & Table */
+        .stats-grid {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: var(--light-purple);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--nav-purple);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--light-purple);
+            color: #444;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .icon-btn {
+            cursor: pointer;
+            font-size: 18px;
+            margin: 0 5px;
+            border: none;
+            background: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar"
+        style="background:white; display:flex; justify-content:space-between; padding: 10px 50px; border-bottom:1px solid #eee;">
+        <div style="display:flex; gap:20px;">
+            <a href="index.html" style="text-decoration:none; color:#555;">Home</a>
+            <a href="admin.html"
+                style="text-decoration:none; color:var(--nav-purple); font-weight:bold; border-bottom:2px solid var(--nav-purple);">Admin
+                Dashboard</a>
+        </div>
+        <div id="user-info">
+            <span id="admin-email-display" style="font-size:12px; margin-right:10px;"></span>
+            <button id="btn-logout" style="color:red; background:none; border:none; cursor:pointer;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="admin-container hidden" id="admin-content">
+        <div class="pending-section">
+            <h2>หอพักรอการตรวจสอบ</h2>
+            <div id="pending-list">
+                <p>กำลังโหลดรายการขออนุมัติ...</p>
+            </div>
+
+            <div class="table-container" style="margin-top: 30px; border-top: 4px solid var(--reject-red);">
+                <h3>🚩 รายงานข้อมูลผิดพลาด</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>รายละเอียด</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-table-body">
+                        <tr>
+                            <td colspan="2">กำลังโหลดรายงาน...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="main-section">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">ยอดผู้เข้าชม</div>
+                    <div class="stat-number" id="stat-views">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">คำขอใหม่</div>
+                    <div class="stat-number" id="stat-pending">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">หอพักทั้งหมด</div>
+                    <div class="stat-number" id="stat-total">0</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3>รายการหอพักที่มีอยู่</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ชื่อหอพัก</th>
+                            <th>โซน</th>
+                            <th>ราคา</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approved-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, app } from './auth.js';
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const db = getFirestore(app);
+        const adminEmails = ["seannakhonboy@gmail.com", "zainlawilmail@gmail.com"];
+
+        // Expose helper actions to the window object so inline HTML click elements can see them
+        window.updateStatus = async (id, newStatus) => {
+            try {
+                await updateDoc(doc(db, "listings", id), { status: newStatus });
+            } catch (e) { console.error("Update Error:", e); }
+        };
+
+        window.deleteDorm = async (id) => {
+            if (confirm("ยืนยันการลบข้อมูลหอพักนี้?")) {
+                try {
+                    await deleteDoc(doc(db, "listings", id));
+                } catch (e) { console.error("Delete Error:", e); }
+            }
+        };
+
+        window.deleteReport = async (id) => {
+            if (confirm("แก้ไขข้อมูลตามที่แจ้งแล้ว และต้องการลบรายงานนี้ใช่หรือไม่?")) {
+                try {
+                    await deleteDoc(doc(db, "reports", id));
+                } catch (e) { console.error("Report Delete Error:", e); }
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user || !adminEmails.includes(user.email)) {
+                alert("Access Denied: Admin only.");
+                window.location.href = "index.html";
+            } else {
+                const adminContent = document.getElementById('admin-content');
+                adminContent.classList.remove('hidden');
+                adminContent.style.display = "grid";
+
+                document.getElementById('admin-email-display').innerText = user.email;
+                loadDashboardData();
+            }
+        });
+
+        function loadDashboardData() {
+            // 1. Pending Requests
+            const qPending = query(collection(db, "listings"), where("status", "==", "pending"));
+            onSnapshot(qPending, (snapshot) => {
+                const list = document.getElementById('pending-list');
+                document.getElementById('stat-pending').innerText = snapshot.size;
+
+                if (snapshot.empty) {
+                    list.innerHTML = `<div style="text-align:center; padding:20px; color:#999; border:2px dashed #ddd; border-radius:15px;">No new requests</div>`;
+                    return;
+                }
+
+                list.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    list.innerHTML += `
+                        <div class="dorm-card">
+                            <div class="dorm-info">
+                                <h3>${data.name || 'Untitled'}</h3>
+                                <p>โซน: ${data.zone || '-'}</p>
+                                <p>ราคา: ${data.priceDisplay || '-'}</p>
+                            </div>
+                            <div class="action-btns">
+                                <button class="btn-action btn-approve" onclick="updateStatus('${doc.id}', 'approved')">อนุมัติ</button>
+                                <button class="btn-action btn-reject" onclick="deleteDorm('${doc.id}')">ปฏิเสธ</button>
+                            </div>
+                        </div>`;
+                });
+            });
+
+            // 2. Main Dorm List
+            const qAllDorms = query(collection(db, "listings"));
+            onSnapshot(qAllDorms, (snapshot) => {
+                const tableBody = document.getElementById('approved-table');
+                tableBody.innerHTML = "";
+                document.getElementById('stat-total').innerText = snapshot.size;
+
+                if (snapshot.empty) {
+                    tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No dorms found.</td></tr>";
+                    return;
+                }
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td style="font-weight:500;">${data.name || 'Untitled'}</td>
+                            <td>${data.zone || '-'}</td>
+                            <td>${data.priceDisplay || '-'}</td>
+                            <td>
+                                <button class="icon-btn" onclick="deleteDorm('${docSnap.id}')" title="Delete">🗑️</button>
+                            </td>
+                        </tr>`;
+                });
+            });
+
+            // 3. User Reports
+            const qReports = query(collection(db, "reports"));
+            onSnapshot(qReports, (snapshot) => {
+                const reportBody = document.getElementById('report-table-body');
+                if (!reportBody) return;
+
+                if (snapshot.empty) {
+                    reportBody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999; padding:20px;'>ไม่มีรายงานใหม่</td></tr>";
+                    return;
+                }
+
+                reportBody.innerHTML = "";
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    
+                    // Explicit lowercase naming attributes matching your real-time cloud data schema
+                    const dName = data.dormName || 'ไม่ระบุชื่อหอพัก';
+                    const rText = data.reportText || 'ไม่มีรายละเอียด';
+                    const uEmail = data.userEmail || 'ไม่ระบุอีเมล';
+
+                    reportBody.innerHTML += `
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #eee;">
+                                <div style="font-weight: bold; color: var(--nav-purple); font-size: 14px;">
+                                    🏢 ${dName}
+                                </div>
+                                <div style="color: #444; font-size: 13px; margin-top: 4px; line-height: 1.4;">
+                                    📝 ${rText}
+                                </div>
+                                <div style="font-size: 10px; color: #aaa; margin-top: 5px;">
+                                    จาก: ${uEmail}
+                                </div>
+                            </td>
+                            <td style="text-align: center; border-bottom: 1px solid #eee;">
+                                <button class="icon-btn" onclick="deleteReport('${docSnap.id}')" title="Mark as Fixed" style="font-size: 20px;">
+                                    ✅
+                                </button>
+                            </td>
+                        </tr>`;
+                });
+            }, (error) => {
+                console.error("Firestore Reports Fetch Error:", error);
+                const reportBody = document.getElementById('report-table-body');
+                if (reportBody) {
+                    reportBody.innerHTML = `<tr><td colspan='2' style='text-align:center; color:red; padding:20px;'>Error: ${error.message}</td></tr>`;
+                }
+            });
+        }
+
+        document.getElementById('btn-logout').onclick = () => signOut(auth);
+    </script>
+</body>
+
+</html>

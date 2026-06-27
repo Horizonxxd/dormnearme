@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Contact Us - Dorm Near Me!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #9b86bd;
+            --light-purple: #e2d5f3;
+            --nav-purple: #9154f1;
+            --bg-gray: #f9f9f9;
+            --reject-red: #ff5757;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-gray);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Banner */
+        .top-banner {
+            background-color: var(--nav-purple);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .nav-links {
+            display: flex;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            color: #555;
+            text-decoration: none;
+            transition: 0.2s;
+            font-weight: 400;
+        }
+
+        .nav-item:hover {
+            color: var(--purple);
+        }
+
+        .nav-item.active {
+            border-bottom: 3px solid var(--purple);
+            color: var(--purple);
+            font-weight: bold;
+        }
+
+        /* Auth UI Components */
+        #auth-section {
+            display: flex;
+            align-items: center;
+            border-left: 1px solid #eee;
+            padding-left: 20px;
+        }
+
+        .btn-login-google {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Kanit';
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--purple);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Contact Content */
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .contact-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .contact-header {
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .contact-info-box {
+            background: #f3efff;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .info-label {
+            color: var(--nav-purple);
+            font-size: 14px;
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 18px;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .info-value:last-child {
+            margin-bottom: 0;
+        }
+
+        .icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Report Button Style */
+        .btn-report {
+            margin-top: 20px;
+            width: 100%;
+            background: #fff1f1;
+            border: 1px solid #ffcccc;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 10px;
+            font-family: 'Kanit';
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-report:hover {
+            background: #ffe4e4;
+        }
+
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Kanit';
+            box-sizing: border-box;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .modal-btns button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Kanit';
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-banner">
+        ข้อมูลที่รวบรวมมาจาก Facebook และ google map โปรดตรวจสอบข้อมูลอีกครั้ง
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="index.html" class="nav-item">ค้นหาหอพัก</a>
+            <a href="add-info.html" class="nav-item">เพิ่มข้อมูล</a>
+            <a href="map.html" class="nav-item">แผนที่</a>
+            <a href="contact.html" class="nav-item active">ติดต่อเรา</a>
+        </div>
+
+        <div id="auth-section">
+            <button id="btn-login" class="btn-login-google">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg"
+                    style="width:18px; margin-right:8px;">
+                Login
+            </button>
+            <div id="user-info" class="hidden" style="display:flex; align-items:center; gap:10px;">
+                <img id="user-photo" src="" class="user-avatar">
+                <button id="btn-logout"
+                    style="background:none; border:none; color:red; cursor:pointer; font-size:12px; font-family:'Kanit';">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="contact-card">
+            <div class="icon">✉️</div>
+            <h2 class="contact-header">แจ้งเปลี่ยนแปลงข้อมูลติดต่อ:</h2>
+            <div class="contact-info-box">
+                <span class="info-label">เบอร์โทรศัพท์</span>
+                <a href="tel:0812345678" class="info-value">081-234-5678</a>
+
+                <span class="info-label">อีเมล</span>
+                <a href="mailto:contact@dormnearme.com" class="info-value">contact@dormnearme.com</a>
+            </div>
+
+            <button id="btn-report-open" class="btn-report">
+                🚩 รายงานข้อมูลผิดพลาด
+            </button>
+        </div>
+    </div>
+
+    <div id="reportModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>🚩 รายงานข้อมูลผิดพลาด</h3>
+            <p style="font-size: 13px; color: #666;">กรุณาระบุรายละเอียดเพื่อให้เราแก้ไขได้ถูกต้อง</p>
+
+            <input type="text" id="reportDormName" placeholder="ชื่อหอพัก..." class="modal-input">
+            <textarea id="reportDescription" placeholder="ข้อมูลที่ต้องการให้แก้ไข (เช่น เบอร์โทรผิด, ราคาไม่อัพเดท...)"
+                class="modal-input" rows="4"></textarea>
+
+            <div class="modal-btns">
+                <button id="btn-cancel-report" style="background:#eee; color:#555;">ยกเลิก</button>
+                <button id="btn-submit-report" style="background:var(--reject-red); color:white;">ส่งรายงาน</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, app, initAuth } from './auth.js';
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        initAuth();
+        const db = getFirestore(app);
+
+        // Modal Elements
+        const modal = document.getElementById('reportModal');
+        const btnOpen = document.getElementById('btn-report-open');
+        const btnCancel = document.getElementById('btn-cancel-report');
+        const btnSubmit = document.getElementById('btn-submit-report');
+
+        // Open Modal
+        btnOpen.onclick = () => {
+            modal.classList.remove('hidden');
+        };
+
+        // Close Modal
+        btnCancel.onclick = () => {
+            modal.classList.add('hidden');
+        };
+
+        // Handle Form Submission
+        btnSubmit.onclick = async () => {
+            const dormName = document.getElementById('reportDormName').value.trim();
+            const description = document.getElementById('reportDescription').value.trim();
+
+            if (!dormName || !description) {
+                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "reports"), {
+                    userEmail: auth.currentUser ? auth.currentUser.email : "Anonymous",
+                    dormName: dormName,
+                    reportText: description,
+                    timestamp: serverTimestamp()
+                });
+
+                alert("ส่งข้อมูลเรียบร้อยแล้ว ขอบคุณที่ช่วยแจ้งเราครับ!");
+                
+                // Clear inputs and close
+                document.getElementById('reportDormName').value = "";
+                document.getElementById('reportDescription').value = "";
+                modal.classList.add('hidden');
+
+            } catch (error) {
+                console.error("Error submitting report:", error);
+                alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+            }
+        };
+
+        // Optional: Close modal if clicking outside the box
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                modal.classList.add('hidden');
+            }
+        };
+    </script>
+
+</body>
+</html>

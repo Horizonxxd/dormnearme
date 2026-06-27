@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Results - Dorm Near Me!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #9b86bd;
+            --light-purple: #e2d5f3;
+            --nav-purple: #9154f1;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 1. Top Announcement Bar - Matched Index */
+        .top-banner {
+            background-color: var(--nav-purple);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        /* 2. Navigation Bar - Matched Index */
+        .navbar {
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            color: #555;
+            font-weight: 400;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-item:hover {
+            color: var(--purple);
+        }
+
+        .nav-item.active {
+            border-bottom: 3px solid var(--purple);
+            color: var(--purple);
+            font-weight: bold;
+        }
+
+        /* Auth Section Styling - Matched Index */
+        #auth-section {
+            display: flex;
+            align-items: center;
+            border-left: 1px solid #eee;
+            padding-left: 20px;
+        }
+
+        .btn-login-google {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Kanit';
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--purple);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 3. Centered Header Section */
+        .header-main {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .header-main h2 {
+            color: #2b579a;
+            font-size: 28px;
+            margin: 0;
+        }
+
+        /* Centered Sort Control Bar */
+        .sort-bar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .sort-select {
+            width: 220px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-family: 'Kanit';
+            background: white;
+            cursor: pointer;
+        }
+
+        /* 4. Results Layout */
+        .main-layout {
+            display: flex;
+            max-width: 1300px;
+            margin: 0 auto;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Results List (Left) */
+        .results-container {
+            flex: 2;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        /* Sidebar Filters (Right) - Matched Sidebar Style */
+        .sidebar-filters {
+            flex: 0.8;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        /* Card Styling */
+        .dorm-card {
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            text-decoration: none;
+            color: inherit;
+            transition: 0.3s;
+        }
+
+        .dorm-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .dorm-img {
+            width: 240px;
+            height: 170px;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .dorm-info {
+            padding: 15px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .price-tag {
+            color: var(--nav-purple);
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .tag-small {
+            background: #f0f0f0;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-right: 5px;
+            color: #666;
+        }
+
+        .filter-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        select,
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-family: 'Kanit';
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--purple);
+        }
+
+        /* Sub-slider panel container built for smooth sliding transitions */
+        .slider-panel {
+            margin-top: 5px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            border-left: 2px solid var(--light-purple);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-banner">
+        ข้อมูลที่รวบรวมมาจาก Facebook และ google map โปรดตรวจสอบข้อมูลอีกครั้ง
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="index.html" class="nav-item">ค้นหาหอพัก</a>
+            <a href="add-info.html" class="nav-item">เพิ่มข้อมูล</a>
+            <a href="map.html" class="nav-item">แผนที่</a>
+            <a href="contact.html" class="nav-item">ติดต่อเรา</a>
+        </div>
+
+        <div id="auth-section">
+            <button id="btn-login" class="btn-login-google">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg"
+                    style="width:18px; margin-right:8px;">
+                Login
+            </button>
+            <div id="user-info" class="hidden" style="display:flex; align-items:center; gap:10px;">
+                <img id="user-photo" src="" class="user-avatar">
+                <button id="btn-logout"
+                    style="background:none; border:none; color:red; cursor:pointer; font-size:12px; font-family:'Kanit';">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="header-main">
+        <h2>🏢 Dorm near me!</h2>
+    </div>
+
+    <div class="sort-bar-container">
+        <label for="sortResults" style="margin-bottom: 0; font-size: 15px;">⇅ เรียงลำดับตาม:</label>
+        <select id="sortResults" class="sort-select">
+            <option value="default">เริ่มต้น</option>
+            <option value="priceLowHigh">ราคา: ต่ำ -> สูง</option>
+            <option value="priceHighLow">ราคา: สูง -> ต่ำ</option>
+            <option value="distanceNearFar">ระยะทางจาก ม.: ใกล้ -> ไกล</option>
+        </select>
+    </div>
+
+    <div class="main-layout">
+        <main class="results-container">
+            <div id="results-list" class="results-grid">กำลังโหลดข้อมูล...</div>
+        </main>
+
+        <aside class="sidebar-filters">
+            <h4 style="margin-top:0;">🔍 กรองข้อมูล</h4>
+
+            <div class="filter-group">
+                <label>ชื่อหอพัก</label>
+                <input type="text" id="filterName" placeholder="ระบุชื่อหอพัก...">
+            </div>
+
+            <div class="filter-group">
+                <label>โซนที่พัก</label>
+                <select id="filterZone">
+                    <option value="all">ทุกโซน</option>
+                    <option value="ฝั่งมอ">ฝั่งมอ</option>
+                    <option value="ฝั่งตรงข้ามมอ">ฝั่งตรงข้ามมอ</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>ราคาไม่เกิน: <span id="priceVal" style="color:var(--nav-purple)">10,000</span> บาท</label>
+                <input type="range" id="filterPrice" min="1000" max="10000" step="100" value="10000">
+            </div>
+
+            <div class="filter-group">
+                <label>ระยะทางไม่เกิน: <span id="distVal" style="color:var(--nav-purple)">3000</span> ม.</label>
+                <input type="range" id="filterDist" min="100" max="3000" step="50" value="3000">
+            </div>
+
+            <div class="filter-group">
+                <label>สิ่งอำนวยความสะดวก</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="air">
+                        แอร์</label>
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="fan">
+                        พัดลม</label>
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="fridge">
+                        ตู้เย็น</label>
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="microwave">
+                        ไมโครเวฟ</label>
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="waterheater">
+                        เครื่องทำน้ำอุ่น</label>
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="desk">
+                        โต๊ะ</label>
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="wardrobe">
+                        ตู้เสื้อผ้า</label>
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="tv">
+                        ทีวี</label>
+                    <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="pantry">
+                        ตู้กับข้าว</label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label>สถานที่รอบ ๆ</label>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <label style="font-weight:normal; margin-bottom:0;">
+                            <input type="checkbox" id="check711" class="poi-check"> 7-11
+                        </label>
+                        <div id="panel711" class="slider-panel hidden">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="val711" style="color:var(--nav-purple)">1000</span> ม.</span>
+                            <input type="range" id="range711" min="50" max="2000" step="50" value="1000">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-weight:normal; margin-bottom:0;">
+                            <input type="checkbox" id="checkMarket" class="poi-check"> ตลาด
+                        </label>
+                        <div id="panelMarket" class="slider-panel hidden">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valMarket" style="color:var(--nav-purple)">1000</span> ม.</span>
+                            <input type="range" id="rangeMarket" min="50" max="2000" step="50" value="1000">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-weight:normal; margin-bottom:0;">
+                            <input type="checkbox" id="checkPharma" class="poi-check"> ร้านขายยา
+                        </label>
+                        <div id="panelPharma" class="slider-panel hidden">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valPharma" style="color:var(--nav-purple)">1000</span> ม.</span>
+                            <input type="range" id="rangePharma" min="50" max="2000" step="50" value="1000">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-weight:normal; margin-bottom:0;">
+                            <input type="checkbox" id="checkLaundry" class="poi-check"> ร้านซักอบผ้า
+                        </label>
+                        <div id="panelLaundry" class="slider-panel hidden">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valLaundry" style="color:var(--nav-purple)">1000</span> ม.</span>
+                            <input type="range" id="rangeLaundry" min="50" max="2000" step="50" value="1000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script type="module">
+        import { initAuth } from './auth.js';
+        import { app } from './auth.js';
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Initialize login logic from your auth.js
+        initAuth();
+
+        const db = getFirestore(app);
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const fName = document.getElementById('filterName');
+        const fZone = document.getElementById('filterZone');
+        const fPrice = document.getElementById('filterPrice');
+        const fDist = document.getElementById('filterDist');
+        const priceVal = document.getElementById('priceVal');
+        const distVal = document.getElementById('distVal');
+        const sortResults = document.getElementById('sortResults');
+
+        // Target references for POI distance control elements
+        const check711 = document.getElementById('check711');
+        const panel711 = document.getElementById('panel711');
+        const range711 = document.getElementById('range711');
+        const val711 = document.getElementById('val711');
+
+        const checkMarket = document.getElementById('checkMarket');
+        const panelMarket = document.getElementById('panelMarket');
+        const rangeMarket = document.getElementById('rangeMarket');
+        const valMarket = document.getElementById('valMarket');
+
+        const checkPharma = document.getElementById('checkPharma');
+        const panelPharma = document.getElementById('panelPharma');
+        const rangePharma = document.getElementById('rangePharma');
+        const valPharma = document.getElementById('valPharma');
+
+        const checkLaundry = document.getElementById('checkLaundry');
+        const panelLaundry = document.getElementById('panelLaundry');
+        const rangeLaundry = document.getElementById('rangeLaundry');
+        const valLaundry = document.getElementById('valLaundry');
+
+        // Set initial values from URL
+        fName.value = urlParams.get('q') || "";
+        fZone.value = urlParams.get('zone') || "all";
+        fPrice.value = urlParams.get('price') || 10000;
+        fDist.value = urlParams.get('dist') || 3000;
+        priceVal.innerText = Number(fPrice.value).toLocaleString();
+        distVal.innerText = fDist.value;
+
+        async function fetchDorms() {
+            const listDiv = document.getElementById('results-list');
+            const qRef = collection(db, "listings");
+
+            try {
+                const querySnapshot = await getDocs(qRef);
+                listDiv.innerHTML = "";
+                
+                const searchKeyword = fName.value.toLowerCase().trim();
+                let validDorms = [];
+
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    data.id = docSnap.id; // Store ID for links
+                    const dormName = data.name.toLowerCase();
+
+                    // --- PRIORITY 1: Name Search ---
+                    if (searchKeyword !== "") {
+                        if (!dormName.includes(searchKeyword)) return;
+                    }
+                    // --- PRIORITY 2: General Filters ---
+                    else {
+                        if (fZone.value !== "all" && data.zone !== fZone.value) return;
+                        if (data.priceMin > Number(fPrice.value)) return;
+                        if (data.distance > Number(fDist.value)) return;
+
+                        const selectedAmens = Array.from(document.querySelectorAll('.amen-check:checked')).map(c => c.value);
+                        if (selectedAmens.length > 0) {
+                            const map = { 
+                                'air': 'แอร์', 
+                                'microwave': 'ไมโครเวฟ', 
+                                'fan': 'พัดลม', 
+                                'fridge': 'ตู้เย็น',
+                                'waterheater': 'เครื่องทำน้ำอุ่น',
+                                'desk': 'โต๊ะ',
+                                'wardrobe': 'ตู้เสื้อผ้า',
+                                'tv': 'ทีวี',
+                                'pantry': 'ตู้กับข้าว'
+                            };
+                            const hasAll = selectedAmens.every(a => (data.amenities || []).includes(map[a]));
+                            if (!hasAll) return;
+                        }
+
+                        // --- Surrounding Places Evaluation Logic ---
+                        const distances = data.distances || {};
+                        
+                        if (check711.checked) {
+                            const d711 = distances.sevenEleven;
+                            if (d711 === undefined || d711 === null || d711 > Number(range711.value)) return;
+                        }
+                        if (checkMarket.checked) {
+                            const dMarket = distances.market;
+                            if (dMarket === undefined || dMarket === null || dMarket > Number(rangeMarket.value)) return;
+                        }
+                        if (checkPharma.checked) {
+                            const dPharma = distances.pharma;
+                            if (dPharma === undefined || dPharma === null || dPharma > Number(rangePharma.value)) return;
+                        }
+                        if (checkLaundry.checked) {
+                            const dLaundry = distances.laundry;
+                            if (dLaundry === undefined || dLaundry === null || dLaundry > Number(rangeLaundry.value)) return;
+                        }
+                    }
+
+                    validDorms.push(data);
+                });
+
+                // --- Sort Handling Strategy ---
+                const sortType = sortResults.value;
+                if (sortType === "priceLowHigh") {
+                    validDorms.sort((a, b) => (a.priceMin || 0) - (b.priceMin || 0));
+                } else if (sortType === "priceHighLow") {
+                    validDorms.sort((a, b) => (b.priceMin || 0) - (a.priceMin || 0));
+                } else if (sortType === "distanceNearFar") {
+                    validDorms.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+                }
+
+                // Render sorted results with storage-mapped image paths
+                validDorms.forEach((data) => {
+                    const bucketName = "dormnearme.firebasestorage.app";
+                    const firstImageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${data.id}/image1.jpg`)}?alt=media`;
+
+                    listDiv.innerHTML += `
+                <a href="details.html?id=${data.id}" class="dorm-card">
+                    <img src="${firstImageUrl}" onerror="this.src='https://via.placeholder.com/250x170'" class="dorm-img">
+                    <div class="dorm-info">
+                        <div>
+                            <h3 style="margin:0 0 5px 0;">${data.name}</h3>
+                            <p style="margin:0; font-size:14px; color:#666;">📍 ${data.zone} | 👣 ${data.distance} ม.</p>
+                            <div style="margin: 12px 0;">
+                                ${(data.amenities || []).map(a => `<span class="tag-small">${a}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="price-tag">฿${(data.priceMin || 0).toLocaleString()}</div>
+                    </div>
+                </a>`;
+                });
+
+                if (validDorms.length === 0) {
+                    listDiv.innerHTML = "<h3>ไม่พบหอพักที่ตรงตามเงื่อนไข 🔍</h3>";
+                }
+            } catch (e) {
+                console.error("Error fetching dorms: ", e);
+            }
+        }
+
+        // Setup visibility and state handling for POI checkboxes
+        [
+            { cb: check711, panel: panel711, slider: range711, label: val711 },
+            { cb: checkMarket, panel: panelMarket, slider: rangeMarket, label: valMarket },
+            { cb: checkPharma, panel: panelPharma, slider: rangePharma, label: valPharma },
+            { cb: checkLaundry, panel: panelLaundry, slider: rangeLaundry, label: valLaundry }
+        ].forEach(item => {
+            item.cb.addEventListener('change', () => {
+                if (item.cb.checked) {
+                    item.panel.classList.remove('hidden');
+                } else {
+                    item.panel.classList.add('hidden');
+                }
+                fetchDorms();
+            });
+            item.slider.addEventListener('input', () => {
+                item.label.innerText = item.slider.value;
+                fetchDorms();
+            });
+        });
+
+        // Trigger sorting updates instantly
+        sortResults.addEventListener('change', fetchDorms);
+
+        // Live filtering
+        [fName, fZone, fPrice, fDist].forEach(el => {
+            el.addEventListener('input', () => {
+                priceVal.innerText = Number(fPrice.value).toLocaleString();
+                distVal.innerText = fDist.value;
+                fetchDorms();
+            });
+        });
+        document.querySelectorAll('.amen-check').forEach(cb => cb.addEventListener('change', fetchDorms));
+
+        fetchDorms();
+    </script>
+</body>
+
+</html>
