@@ -39,18 +39,19 @@
             padding: 10px 20px;
             border-bottom: 1px solid #eee;
             margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
+            position: relative;
+            z-index: 10;
         }
 
         .nav-links {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
+            gap: 5px;
         }
 
         .nav-item {
-            padding: 10px 12px;
+            padding: 8px 12px;
             cursor: pointer;
             color: #555;
             font-weight: 400;
@@ -69,13 +70,14 @@
             font-weight: bold;
         }
 
-        /* Login Button Styles - Always aligned right */
+        /* Login Button Styles - Fixed z-index & clickability */
         #auth-section {
             display: flex;
             align-items: center;
-            border-left: 1px solid #eee;
-            padding-left: 15px;
-            margin-left: auto; /* Pushes auth section to the far top right */
+            margin-left: auto;
+            position: relative;
+            z-index: 20; /* Ensures button is clickable over header elements */
+            pointer-events: auto;
         }
 
         .btn-login-google {
@@ -90,6 +92,7 @@
             font-size: 14px;
             transition: 0.3s;
             color: #333;
+            pointer-events: auto; /* Fixes unclickable touch issue */
         }
 
         .btn-login-google:hover {
@@ -120,6 +123,8 @@
             text-align: center;
             margin-top: 10px;
             padding: 0 15px;
+            position: relative;
+            z-index: 1;
         }
 
         .search-container {
@@ -241,7 +246,6 @@
             color: white;
         }
 
-        /* Inline dynamic nested slider layout config */
         .poi-slider-block {
             grid-column: span 2;
             margin-top: 2px;
@@ -251,21 +255,23 @@
             border-radius: 6px;
         }
 
-        /* 📱 RESPONSIVE MEDIA QUERIES FOR IPAD & PHONES */
+        /* 📱 RESPONSIVE MEDIA QUERIES FOR MOBILE/IPAD */
         @media (max-width: 900px) {
+            .navbar {
+                padding: 10px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
             .container {
-                flex-direction: column; /* Stacks layout vertically */
+                flex-direction: column;
                 padding: 15px;
                 margin: 0 15px 30px 15px;
             }
 
-            .navbar {
-                padding: 10px 15px;
-            }
-
             .nav-item {
-                padding: 8px 10px;
-                font-size: 14px;
+                padding: 6px 8px;
+                font-size: 13px;
             }
 
             .btn-group {
@@ -428,7 +434,6 @@
 
         initAuth();
 
-        // 1. Slider logic
         const priceInput = document.getElementById('priceInput');
         const priceTxt = document.getElementById('priceTxt');
 
@@ -451,7 +456,6 @@
             updateDist();
         }
 
-        // POI Checkbox Slider Dynamic Visibility Setup
         const poiConfigs = [
             { id: '711', cb: document.getElementById('check711'), panel: document.getElementById('panel711'), range: document.getElementById('range711'), text: document.getElementById('txt711') },
             { id: 'pharmacy', cb: document.getElementById('checkPharmacy'), panel: document.getElementById('panelPharmacy'), range: document.getElementById('rangePharmacy'), text: document.getElementById('txtPharmacy') },
@@ -460,33 +464,32 @@
         ];
 
         poiConfigs.forEach(item => {
-            item.cb.onchange = () => {
-                if (item.cb.checked) item.panel.classList.remove('hidden');
-                else item.panel.classList.add('hidden');
-            };
-            item.range.oninput = () => {
-                item.text.innerText = item.range.value;
-            };
+            if (item.cb) {
+                item.cb.onchange = () => {
+                    if (item.cb.checked) item.panel.classList.remove('hidden');
+                    else item.panel.classList.add('hidden');
+                };
+            }
+            if (item.range) {
+                item.range.oninput = () => {
+                    item.text.innerText = item.range.value;
+                };
+            }
         });
 
-        // 2. SEARCH LOGIC
         document.getElementById('btn-confirm').onclick = function () {
-            // Collect Basic Info
             const query = document.getElementById('searchInput').value;
             const zone = document.getElementById('zoneSelect').value;
             const type = document.getElementById('typeSelect').value;
             const maxPrice = document.getElementById('priceInput').value;
             const maxDist = document.getElementById('distInput').value;
 
-            // Collect Checkboxes (Nearby)
             const near = Array.from(document.querySelectorAll('.near-check:checked'))
                 .map(cb => cb.value);
 
-            // Collect Checkboxes (Amenities)
             const amen = Array.from(document.querySelectorAll('.amen-check:checked'))
                 .map(cb => cb.value);
 
-            // Build URL Parameters
             const params = new URLSearchParams({
                 q: query,
                 zone: zone,
@@ -497,14 +500,12 @@
                 amen: amen.join(',')
             });
 
-            // Append optional target POI sliding distances into the final query params
             poiConfigs.forEach(item => {
-                if (item.cb.checked) {
+                if (item.cb && item.cb.checked) {
                     params.append(`dist_${item.id}`, item.range.value);
                 }
             });
 
-            // Redirect to results.html
             window.location.href = `results.html?${params.toString()}`;
         };
     </script>
