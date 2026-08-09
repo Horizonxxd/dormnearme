@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - Dorm Near Me!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --purple: #9b86bd;
-            --nav-purple: #9154f1;
-            --light-purple: #e2d5f3;
+            --purple: #7C3AED;
+            --nav-purple: #6366F1;
+            --light-purple: #EEF2FF;
             --approve-green: #7ed957;
             --edit-yellow: #ffde59;
             --reject-red: #ff5757;
@@ -19,11 +19,46 @@
             font-family: 'Kanit', sans-serif;
             background: #f9f9f9;
             margin: 0;
-            padding-top: 20px;
+            padding: 0;
         }
 
         .hidden {
             display: none !important;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            color: #555;
+            font-weight: 400;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-item:hover {
+            color: var(--purple);
+        }
+
+        .nav-item.active {
+            border-bottom: 3px solid var(--purple);
+            color: var(--purple);
+            font-weight: bold;
         }
 
         .admin-container {
@@ -117,7 +152,7 @@
         .stat-number {
             font-size: 24px;
             font-weight: bold;
-            color: var(--nav-purple);
+            color: var(--purple);
         }
 
         .table-container {
@@ -153,22 +188,31 @@
             border: none;
             background: none;
         }
+
+        /* Listing Title Link Styling */
+        .dorm-link {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .dorm-link:hover {
+            color: var(--purple);
+            text-decoration: underline;
+        }
     </style>
 </head>
 
 <body>
 
-    <nav class="navbar"
-        style="background:white; display:flex; justify-content:space-between; padding: 10px 50px; border-bottom:1px solid #eee;">
-        <div style="display:flex; gap:20px;">
-            <a href="index.html" style="text-decoration:none; color:#555;">Home</a>
-            <a href="admin.html"
-                style="text-decoration:none; color:var(--nav-purple); font-weight:bold; border-bottom:2px solid var(--nav-purple);">Admin
-                Dashboard</a>
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="index.html" class="nav-item">Home</a>
+            <a href="admin.html" class="nav-item active">Admin Dashboard</a>
         </div>
-        <div id="user-info">
-            <span id="admin-email-display" style="font-size:12px; margin-right:10px;"></span>
-            <button id="btn-logout" style="color:red; background:none; border:none; cursor:pointer;">Logout</button>
+        <div id="user-info" style="display: flex; align-items: center;">
+            <span id="admin-email-display" style="font-size:12px; margin-right:10px; color:#555;"></span>
+            <button id="btn-logout" style="color:var(--reject-red); background:none; border:none; cursor:pointer; font-family:'Kanit'; font-weight: 500;">Logout</button>
         </div>
     </nav>
 
@@ -180,7 +224,7 @@
             </div>
 
             <div class="table-container" style="margin-top: 30px; border-top: 4px solid var(--reject-red);">
-                <h3>🚩 รายงานข้อมูลผิดพลาด</h3>
+                <h3 style="margin-top: 0;">🚩 รายงานข้อมูลผิดพลาด</h3>
                 <table>
                     <thead>
                         <tr>
@@ -214,7 +258,7 @@
             </div>
 
             <div class="table-container">
-                <h3>รายการหอพักที่มีอยู่</h3>
+                <h3 style="margin-top: 0;">รายการหอพักที่มีอยู่</h3>
                 <table>
                     <thead>
                         <tr>
@@ -288,18 +332,22 @@
                 }
 
                 list.innerHTML = "";
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
                     list.innerHTML += `
                         <div class="dorm-card">
                             <div class="dorm-info">
-                                <h3>${data.name || 'Untitled'}</h3>
+                                <h3>
+                                    <a href="details.html?id=${docSnap.id}" target="_blank" class="dorm-link">
+                                        ${data.name || 'Untitled'} 🔗
+                                    </a>
+                                </h3>
                                 <p>โซน: ${data.zone || '-'}</p>
                                 <p>ราคา: ${data.priceDisplay || '-'}</p>
                             </div>
                             <div class="action-btns">
-                                <button class="btn-action btn-approve" onclick="updateStatus('${doc.id}', 'approved')">อนุมัติ</button>
-                                <button class="btn-action btn-reject" onclick="deleteDorm('${doc.id}')">ปฏิเสธ</button>
+                                <button class="btn-action btn-approve" onclick="updateStatus('${docSnap.id}', 'approved')">อนุมัติ</button>
+                                <button class="btn-action btn-reject" onclick="deleteDorm('${docSnap.id}')">ปฏิเสธ</button>
                             </div>
                         </div>`;
                 });
@@ -321,7 +369,11 @@
                     const data = docSnap.data();
                     tableBody.innerHTML += `
                         <tr>
-                            <td style="font-weight:500;">${data.name || 'Untitled'}</td>
+                            <td style="font-weight:500;">
+                                <a href="details.html?id=${docSnap.id}" target="_blank" class="dorm-link">
+                                    ${data.name || 'Untitled'}
+                                </a>
+                            </td>
                             <td>${data.zone || '-'}</td>
                             <td>${data.priceDisplay || '-'}</td>
                             <td>
@@ -354,7 +406,7 @@
                     reportBody.innerHTML += `
                         <tr>
                             <td style="padding: 12px; border-bottom: 1px solid #eee;">
-                                <div style="font-weight: bold; color: var(--nav-purple); font-size: 14px;">
+                                <div style="font-weight: bold; color: var(--purple); font-size: 14px;">
                                     🏢 ${dName}
                                 </div>
                                 <div style="color: #444; font-size: 13px; margin-top: 4px; line-height: 1.4;">

@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Results - Dorm Near Me!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --purple: #9b86bd;
-            --light-purple: #e2d5f3;
-            --nav-purple: #9154f1;
+            --purple: #7C3AED;
+            --light-purple: #EEF2FF;
+            --nav-purple: #6366F1;
         }
 
         body {
@@ -92,7 +92,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         /* 3. Centered Header Section */
@@ -103,9 +103,10 @@
         }
 
         .header-main h2 {
-            color: #2b579a;
+            color: var(--purple);
             font-size: 28px;
             margin: 0;
+            font-weight: 600;
         }
 
         /* Centered Sort Control Bar */
@@ -125,6 +126,11 @@
             font-family: 'Kanit';
             background: white;
             cursor: pointer;
+        }
+
+        .sort-select:focus {
+            border-color: var(--purple);
+            outline: none;
         }
 
         /* 4. Results Layout */
@@ -153,7 +159,7 @@
             background: white;
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             height: fit-content;
             position: sticky;
             top: 20px;
@@ -165,7 +171,7 @@
             border-radius: 15px;
             display: flex;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             text-decoration: none;
             color: inherit;
             transition: 0.3s;
@@ -173,7 +179,7 @@
 
         .dorm-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.12);
         }
 
         .dorm-img {
@@ -192,18 +198,21 @@
         }
 
         .price-tag {
-            color: var(--nav-purple);
+            color: var(--purple);
             font-size: 22px;
             font-weight: bold;
         }
 
         .tag-small {
-            background: #f0f0f0;
+            background: var(--light-purple);
+            color: var(--purple);
             padding: 3px 10px;
             border-radius: 12px;
-            font-size: 11px;
+            font-size: 12px;
             margin-right: 5px;
-            color: #666;
+            display: inline-block;
+            margin-bottom: 4px;
+            font-weight: 500;
         }
 
         .filter-group {
@@ -211,7 +220,7 @@
         }
 
         label {
-            font-weight: bold;
+            font-weight: 500;
             font-size: 14px;
             display: block;
             margin-bottom: 8px;
@@ -222,13 +231,25 @@
         input[type="text"] {
             width: 100%;
             padding: 10px;
-            border-radius: 5px;
+            border-radius: 8px;
             border: 1px solid #ddd;
             font-family: 'Kanit';
+            box-sizing: border-box;
+        }
+
+        select:focus,
+        input[type="text"]:focus {
+            border-color: var(--purple);
+            outline: none;
         }
 
         input[type="range"] {
             width: 100%;
+            accent-color: var(--purple);
+        }
+
+        /* Checkbox styling */
+        input[type="checkbox"] {
             accent-color: var(--purple);
         }
 
@@ -237,7 +258,7 @@
             margin-top: 5px;
             margin-bottom: 10px;
             padding-left: 10px;
-            border-left: 2px solid var(--light-purple);
+            border-left: 2px solid var(--purple);
         }
     </style>
 </head>
@@ -258,7 +279,7 @@
 
         <div id="auth-section">
             <button id="btn-login" class="btn-login-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg"
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                     style="width:18px; margin-right:8px;">
                 Login
             </button>
@@ -290,7 +311,7 @@
         </main>
 
         <aside class="sidebar-filters">
-            <h4 style="margin-top:0;">🔍 กรองข้อมูล</h4>
+            <h3 style="margin-top:0; margin-bottom: 20px; color: #333;">🔍 กรองข้อมูล</h3>
 
             <div class="filter-group">
                 <label>ชื่อหอพัก</label>
@@ -307,13 +328,13 @@
             </div>
 
             <div class="filter-group">
-                <label>ราคาไม่เกิน: <span id="priceVal" style="color:var(--nav-purple)">10,000</span> บาท</label>
+                <label>ราคาไม่เกิน: <span id="priceVal" style="color:var(--purple); font-weight:bold;">10,000</span> บาท</label>
                 <input type="range" id="filterPrice" min="1000" max="10000" step="100" value="10000">
             </div>
 
             <div class="filter-group">
-                <label>ระยะทางไม่เกิน: <span id="distVal" style="color:var(--nav-purple)">3000</span> ม.</label>
-                <input type="range" id="filterDist" min="100" max="3000" step="50" value="3000">
+                <label>ระยะทางไม่เกิน: <span id="distVal" style="color:var(--purple); font-weight:bold;">2000</span> ม.</label>
+                <input type="range" id="filterDist" min="100" max="2000" step="100" value="2000">
             </div>
 
             <div class="filter-group">
@@ -348,8 +369,8 @@
                             <input type="checkbox" id="check711" class="poi-check"> 7-11
                         </label>
                         <div id="panel711" class="slider-panel hidden">
-                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="val711" style="color:var(--nav-purple)">1000</span> ม.</span>
-                            <input type="range" id="range711" min="50" max="2000" step="50" value="1000">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="val711" style="color:var(--purple); font-weight:bold;">1000</span> ม.</span>
+                            <input type="range" id="range711" min="100" max="2000" step="100" value="1000">
                         </div>
                     </div>
 
@@ -358,8 +379,8 @@
                             <input type="checkbox" id="checkMarket" class="poi-check"> ตลาด
                         </label>
                         <div id="panelMarket" class="slider-panel hidden">
-                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valMarket" style="color:var(--nav-purple)">1000</span> ม.</span>
-                            <input type="range" id="rangeMarket" min="50" max="2000" step="50" value="1000">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valMarket" style="color:var(--purple); font-weight:bold;">1000</span> ม.</span>
+                            <input type="range" id="rangeMarket" min="100" max="2000" step="100" value="1000">
                         </div>
                     </div>
 
@@ -368,8 +389,8 @@
                             <input type="checkbox" id="checkPharma" class="poi-check"> ร้านขายยา
                         </label>
                         <div id="panelPharma" class="slider-panel hidden">
-                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valPharma" style="color:var(--nav-purple)">1000</span> ม.</span>
-                            <input type="range" id="rangePharma" min="50" max="2000" step="50" value="1000">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valPharma" style="color:var(--purple); font-weight:bold;">1000</span> ม.</span>
+                            <input type="range" id="rangePharma" min="100" max="2000" step="100" value="1000">
                         </div>
                     </div>
 
@@ -378,8 +399,8 @@
                             <input type="checkbox" id="checkLaundry" class="poi-check"> ร้านซักอบผ้า
                         </label>
                         <div id="panelLaundry" class="slider-panel hidden">
-                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valLaundry" style="color:var(--nav-purple)">1000</span> ม.</span>
-                            <input type="range" id="rangeLaundry" min="50" max="2000" step="50" value="1000">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valLaundry" style="color:var(--purple); font-weight:bold;">1000</span> ม.</span>
+                            <input type="range" id="rangeLaundry" min="100" max="2000" step="100" value="1000">
                         </div>
                     </div>
                 </div>
@@ -388,9 +409,8 @@
     </div>
 
     <script type="module">
-        import { initAuth } from './auth.js';
-        import { app } from './auth.js';
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initAuth, app } from './auth.js';
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Initialize login logic from your auth.js
         initAuth();
@@ -431,7 +451,7 @@
         fName.value = urlParams.get('q') || "";
         fZone.value = urlParams.get('zone') || "all";
         fPrice.value = urlParams.get('price') || 10000;
-        fDist.value = urlParams.get('dist') || 3000;
+        fDist.value = urlParams.get('dist') || 2000;
         priceVal.innerText = Number(fPrice.value).toLocaleString();
         distVal.innerText = fDist.value;
 
@@ -449,54 +469,53 @@
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
                     data.id = docSnap.id; // Store ID for links
-                    const dormName = data.name.toLowerCase();
+                    const dormName = (data.name || "").toLowerCase();
 
                     // --- PRIORITY 1: Name Search ---
                     if (searchKeyword !== "") {
                         if (!dormName.includes(searchKeyword)) return;
                     }
+                    
                     // --- PRIORITY 2: General Filters ---
-                    else {
-                        if (fZone.value !== "all" && data.zone !== fZone.value) return;
-                        if (data.priceMin > Number(fPrice.value)) return;
-                        if (data.distance > Number(fDist.value)) return;
+                    if (fZone.value !== "all" && data.zone !== fZone.value) return;
+                    if (data.priceMin > Number(fPrice.value)) return;
+                    if (data.distance > Number(fDist.value)) return;
 
-                        const selectedAmens = Array.from(document.querySelectorAll('.amen-check:checked')).map(c => c.value);
-                        if (selectedAmens.length > 0) {
-                            const map = { 
-                                'air': 'แอร์', 
-                                'microwave': 'ไมโครเวฟ', 
-                                'fan': 'พัดลม', 
-                                'fridge': 'ตู้เย็น',
-                                'waterheater': 'เครื่องทำน้ำอุ่น',
-                                'desk': 'โต๊ะ',
-                                'wardrobe': 'ตู้เสื้อผ้า',
-                                'tv': 'ทีวี',
-                                'pantry': 'ตู้กับข้าว'
-                            };
-                            const hasAll = selectedAmens.every(a => (data.amenities || []).includes(map[a]));
-                            if (!hasAll) return;
-                        }
+                    const selectedAmens = Array.from(document.querySelectorAll('.amen-check:checked')).map(c => c.value);
+                    if (selectedAmens.length > 0) {
+                        const map = { 
+                            'air': 'แอร์', 
+                            'microwave': 'ไมโครเวฟ', 
+                            'fan': 'พัดลม', 
+                            'fridge': 'ตู้เย็น',
+                            'waterheater': 'เครื่องทำน้ำอุ่น',
+                            'desk': 'โต๊ะ',
+                            'wardrobe': 'ตู้เสื้อผ้า',
+                            'tv': 'ทีวี',
+                            'pantry': 'ตู้กับข้าว'
+                        };
+                        const hasAll = selectedAmens.every(a => (data.amenities || []).includes(map[a]));
+                        if (!hasAll) return;
+                    }
 
-                        // --- Surrounding Places Evaluation Logic ---
-                        const distances = data.distances || {};
-                        
-                        if (check711.checked) {
-                            const d711 = distances.sevenEleven;
-                            if (d711 === undefined || d711 === null || d711 > Number(range711.value)) return;
-                        }
-                        if (checkMarket.checked) {
-                            const dMarket = distances.market;
-                            if (dMarket === undefined || dMarket === null || dMarket > Number(rangeMarket.value)) return;
-                        }
-                        if (checkPharma.checked) {
-                            const dPharma = distances.pharma;
-                            if (dPharma === undefined || dPharma === null || dPharma > Number(rangePharma.value)) return;
-                        }
-                        if (checkLaundry.checked) {
-                            const dLaundry = distances.laundry;
-                            if (dLaundry === undefined || dLaundry === null || dLaundry > Number(rangeLaundry.value)) return;
-                        }
+                    // --- Surrounding Places Evaluation Logic ---
+                    const distances = data.distances || {};
+                    
+                    if (check711.checked) {
+                        const d711 = distances.sevenEleven;
+                        if (d711 === undefined || d711 === null || d711 > Number(range711.value)) return;
+                    }
+                    if (checkMarket.checked) {
+                        const dMarket = distances.market;
+                        if (dMarket === undefined || dMarket === null || dMarket > Number(rangeMarket.value)) return;
+                    }
+                    if (checkPharma.checked) {
+                        const dPharma = distances.pharma;
+                        if (dPharma === undefined || dPharma === null || dPharma > Number(rangePharma.value)) return;
+                    }
+                    if (checkLaundry.checked) {
+                        const dLaundry = distances.laundry;
+                        if (dLaundry === undefined || dLaundry === null || dLaundry > Number(rangeLaundry.value)) return;
                     }
 
                     validDorms.push(data);
@@ -522,7 +541,7 @@
                     <img src="${firstImageUrl}" onerror="this.src='https://via.placeholder.com/250x170'" class="dorm-img">
                     <div class="dorm-info">
                         <div>
-                            <h3 style="margin:0 0 5px 0;">${data.name}</h3>
+                            <h3 style="margin:0 0 5px 0; color:#333;">${data.name}</h3>
                             <p style="margin:0; font-size:14px; color:#666;">📍 ${data.zone} | 👣 ${data.distance} ม.</p>
                             <div style="margin: 12px 0;">
                                 ${(data.amenities || []).map(a => `<span class="tag-small">${a}</span>`).join('')}
@@ -534,7 +553,7 @@
                 });
 
                 if (validDorms.length === 0) {
-                    listDiv.innerHTML = "<h3>ไม่พบหอพักที่ตรงตามเงื่อนไข 🔍</h3>";
+                    listDiv.innerHTML = "<h3 style='color: #666; font-weight: normal; text-align: center; margin-top: 40px;'>ไม่พบหอพักที่ตรงตามเงื่อนไข 🔍</h3>";
                 }
             } catch (e) {
                 console.error("Error fetching dorms: ", e);

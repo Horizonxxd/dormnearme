@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Dorm Details - Dorm Near Me!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --purple: #9b86bd;
-            --light-purple: #e2d5f3;
-            --nav-purple: #9154f1;
+            --purple: #7C3AED;
+            --light-purple: #EEF2FF;
+            --nav-purple: #6366F1;
         }
 
         body {
@@ -19,7 +19,7 @@
             padding: 0;
         }
 
-        /* Navbar Sync */
+        /* 1. Top Announcement Bar - Matched Design System */
         .top-banner {
             background-color: var(--nav-purple);
             color: white;
@@ -28,6 +28,7 @@
             font-size: 14px;
         }
 
+        /* 2. Navigation Bar - Matched Design System */
         .navbar {
             background: white;
             display: flex;
@@ -45,19 +46,40 @@
             padding: 15px 25px;
             cursor: pointer;
             color: #555;
+            font-weight: 400;
             text-decoration: none;
             transition: 0.2s;
+            display: inline-block;
         }
 
         .nav-item:hover {
             color: var(--purple);
         }
 
+        /* Auth Section Styling - Matched Design System */
         #auth-section {
             display: flex;
             align-items: center;
             border-left: 1px solid #eee;
             padding-left: 20px;
+        }
+
+        .btn-login-google {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Kanit';
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-login-google:hover {
+            border-color: var(--purple);
+            color: var(--purple);
         }
 
         .user-avatar {
@@ -68,7 +90,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         /* Detail Layout */
@@ -87,6 +109,7 @@
             border-radius: 20px;
             overflow: hidden;
             margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         .main-img {
@@ -98,7 +121,8 @@
             transition: opacity 0.2s;
         }
 
-        .main-img:hover, .side-img:hover {
+        .main-img:hover,
+        .side-img:hover {
             opacity: 0.9;
         }
 
@@ -110,7 +134,6 @@
             overflow: hidden;
         }
 
-        /* New structural framing container for side images */
         .side-img-box {
             flex: 1;
             height: 50%;
@@ -169,7 +192,8 @@
             color: var(--light-purple);
         }
 
-        .lightbox-prev, .lightbox-next {
+        .lightbox-prev,
+        .lightbox-next {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
@@ -179,7 +203,7 @@
             padding: 16px;
             cursor: pointer;
             transition: 0.2s;
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -189,15 +213,21 @@
             text-decoration: none;
         }
 
-        .lightbox-prev { left: 30px; }
-        .lightbox-next { right: 30px; }
+        .lightbox-prev {
+            left: 30px;
+        }
 
-        .lightbox-prev:hover, .lightbox-next:hover {
+        .lightbox-next {
+            right: 30px;
+        }
+
+        .lightbox-prev:hover,
+        .lightbox-next:hover {
             background: rgba(255, 255, 255, 0.2);
             color: var(--light-purple);
         }
 
-        /* Content Blocks */
+        /* Content Cards */
         .content-card {
             background: white;
             padding: 30px;
@@ -213,7 +243,7 @@
         }
 
         .price-big {
-            color: var(--nav-purple);
+            color: var(--purple);
             font-size: 32px;
             font-weight: bold;
         }
@@ -222,9 +252,10 @@
             display: inline-block;
             padding: 5px 15px;
             background: var(--light-purple);
-            color: var(--nav-purple);
+            color: var(--purple);
             border-radius: 10px;
             font-size: 14px;
+            font-weight: 500;
             margin-right: 10px;
         }
 
@@ -234,6 +265,7 @@
             margin-bottom: 15px;
             border-bottom: 2px solid var(--light-purple);
             padding-bottom: 5px;
+            color: #333;
         }
 
         /* Flex Layout for Amenities + Map */
@@ -251,7 +283,7 @@
             min-width: 250px;
         }
 
-        /* Updated Grid Layout for 2-Column Amenities List */
+        /* Grid Layout for 2-Column Amenities List */
         .amenities-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -277,7 +309,7 @@
         }
 
         .contact-box {
-            background: #f0f7ff;
+            background: var(--light-purple);
             padding: 20px;
             border-radius: 15px;
             display: flex;
@@ -286,39 +318,46 @@
         }
 
         .btn-call {
-            background: var(--nav-purple);
+            background: var(--purple);
             color: white;
             padding: 12px 25px;
             border-radius: 10px;
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 500;
             transition: 0.3s;
+            display: inline-block;
         }
 
         .btn-call:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
+            opacity: 0.9;
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
         }
 
         @media (max-width: 768px) {
             .split-layout {
                 flex-direction: column;
             }
+
             .map-wrapper {
                 width: 100%;
                 flex: none;
             }
+
             .amenities-grid {
                 grid-template-columns: 1fr;
             }
+
             .gallery-container {
                 grid-template-columns: 1fr;
                 height: auto;
             }
+
             .side-imgs {
                 flex-direction: row;
                 height: 150px;
             }
+
             .side-img-box {
                 height: 100%;
                 width: 50%;
@@ -329,7 +368,9 @@
 
 <body>
 
-    <div class="top-banner">ข้อมูลที่รวบรวมมาจาก Facebook และ google map โปรดตรวจสอบข้อมูลอีกครั้ง</div>
+    <div class="top-banner">
+        ข้อมูลที่รวบรวมมาจาก Facebook และ google map โปรดตรวจสอบข้อมูลอีกครั้ง
+    </div>
 
     <nav class="navbar">
         <div class="nav-links">
@@ -340,6 +381,11 @@
         </div>
 
         <div id="auth-section">
+            <button id="btn-login" class="btn-login-google">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                    style="width:18px; margin-right:8px;">
+                Login
+            </button>
             <div id="user-info" class="hidden" style="display:flex; align-items:center; gap:10px;">
                 <img id="user-photo" src="" class="user-avatar">
                 <button id="btn-logout"
@@ -349,7 +395,7 @@
     </nav>
 
     <div class="container" id="details-content">
-        <h2 style="text-align: center; margin-top: 50px;">กำลังโหลดข้อมูลหอพัก...</h2>
+        <h2 style="text-align: center; margin-top: 50px; color: var(--purple);">กำลังโหลดข้อมูลหอพัก...</h2>
     </div>
 
     <div id="lightbox" class="lightbox-modal">
@@ -374,7 +420,7 @@
 
         async function loadDormData() {
             if (!dormId) {
-                document.getElementById('details-content').innerHTML = "<h2>ไม่พบรหัสหอพัก</h2>";
+                document.getElementById('details-content').innerHTML = "<h2 style='text-align:center;'>ไม่พบรหัสหอพัก</h2>";
                 return;
             }
 
@@ -383,14 +429,14 @@
 
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                
-                const bucketName = "dormnearme.firebasestorage.app"; 
+
+                const bucketName = "dormnearme.firebasestorage.app";
                 const images = [
                     `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${dormId}/image1.jpg`)}?alt=media`,
                     `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${dormId}/image2.jpg`)}?alt=media`,
                     `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${dormId}/image3.jpg`)}?alt=media`
                 ];
-                
+
                 activeImagesList = images;
 
                 let mapEmbedUrl = null;
@@ -402,7 +448,6 @@
 
                 document.title = `${data.name} - Dorm Near Me!`;
 
-                // Render structure with newly enclosed side box constraints
                 document.getElementById('details-content').innerHTML = `
                     <div class="gallery-container">
                         <img src="${images[0]}" onerror="this.src='https://via.placeholder.com/600x400'" class="main-img" data-idx="0">
@@ -419,7 +464,7 @@
                     <div class="content-card">
                         <div class="header-section">
                             <div>
-                                <h1 style="margin:0;">${data.name}</h1>
+                                <h1 style="margin:0; color:#333;">${data.name}</h1>
                                 <p style="color:#666; margin: 5px 0 15px 0;">📍 ${data.zone} | ห่างจากมหาวิทยาลัย ${data.distance} เมตร</p>
                                 <div>
                                     <span class="badge">${data.type || 'หอพักรวม'}</span>
@@ -436,7 +481,7 @@
                         <div class="section-title">รายละเอียดและที่ตั้ง</div>
                         <div class="split-layout">
                             <div class="amenity-list-vertical">
-                                <strong style="color:var(--nav-purple); margin-bottom: 5px; display: block;">สิ่งอำนวยความสะดวก:</strong>
+                                <strong style="color:var(--purple); margin-bottom: 5px; display: block;">สิ่งอำนวยความสะดวก:</strong>
                                 
                                 <div class="amenities-grid">
                                     ${(data.amenities || []).map(a => `
@@ -444,7 +489,7 @@
                                     `).join('')}
                                 </div>
 
-                                <strong style="color:var(--nav-purple); margin-top: 5px; margin-bottom: 5px; display: block;">สถานที่ใกล้เคียง:</strong>
+                                <strong style="color:var(--purple); margin-top: 5px; margin-bottom: 5px; display: block;">สถานที่ใกล้เคียง:</strong>
                                 <div class="amenity-item">• ห่างจาก 7-11: ${data.distances && data.distances.sevenEleven ? data.distances.sevenEleven + ' เมตร' : '-'}</div>
                                 <div class="amenity-item">• ห่างจาก ร้านซักอบผ้า: ${data.distances && data.distances.laundry ? data.distances.laundry + ' เมตร' : '-'}</div>
                                 <div class="amenity-item">• ห่างจาก ร้านขายยา: ${data.distances && data.distances.pharma ? data.distances.pharma + ' เมตร' : '-'}</div>
@@ -470,7 +515,7 @@
                         <div class="section-title">สนใจติดต่อสอบถาม</div>
                         <div class="contact-box">
                             <div style="flex:1;">
-                                <strong>เบอร์โทรศัพท์:</strong> ${data.contact || 'โปรดติดต่อผ่าน Facebook'} <br>
+                                <strong style="color: #333;">เบอร์โทรศัพท์:</strong> <span style="color: var(--purple); font-weight: 600;">${data.contact || 'โปรดติดต่อผ่าน Facebook'}</span> <br>
                                 <small style="color:#666;">แจ้งว่าติดต่อมาจากเว็บไซต์ "Dorm Near Me!"</small>
                             </div>
                             <a href="tel:${data.contact}" class="btn-call">📞 โทรเลย</a>
@@ -478,20 +523,20 @@
                     </div>
 
                     <div style="text-align: center; margin-bottom: 40px;">
-                        <a href="results.html" style="color: var(--nav-purple); text-decoration:none;">← กลับไปหน้าผลการค้นหา</a>
+                        <a href="results.html" style="color: var(--purple); font-weight: 500; text-decoration:none;">← กลับไปหน้าผลการค้นหา</a>
                     </div>
                 `;
 
                 setupLightboxEvents();
             } else {
-                document.getElementById('details-content').innerHTML = "<h2>ไม่พบข้อมูลหอพักนี้</h2>";
+                document.getElementById('details-content').innerHTML = "<h2 style='text-align:center;'>ไม่พบข้อมูลหอพักนี้</h2>";
             }
         }
 
         function setupLightboxEvents() {
             const lightbox = document.getElementById('lightbox');
             const lightboxImg = document.getElementById('lightbox-img');
-            
+
             document.querySelector('.gallery-container').addEventListener('click', (e) => {
                 if (e.target.tagName === 'IMG') {
                     currentImageIdx = parseInt(e.target.getAttribute('data-idx'), 10);

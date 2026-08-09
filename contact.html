@@ -7,9 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --purple: #9b86bd;
-            --light-purple: #e2d5f3;
-            --nav-purple: #9154f1;
+            --purple: #7C3AED;
+            --light-purple: #EEF2FF;
+            --nav-purple: #6366F1;
             --bg-gray: #f9f9f9;
             --reject-red: #ff5757;
         }
@@ -124,7 +124,7 @@
         }
 
         .contact-info-box {
-            background: #f3efff;
+            background: var(--light-purple);
             padding: 20px;
             border-radius: 15px;
         }
@@ -184,6 +184,7 @@
             display: flex; justify-content: center; align-items: center;
             z-index: 1000;
         }
+
         .modal-box {
             background: white;
             padding: 30px;
@@ -192,6 +193,7 @@
             max-width: 400px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
+
         .modal-input {
             width: 100%;
             padding: 12px;
@@ -201,11 +203,18 @@
             font-family: 'Kanit';
             box-sizing: border-box;
         }
+
+        .modal-input:focus {
+            border-color: var(--purple);
+            outline: none;
+        }
+
         .modal-btns {
             display: flex;
             gap: 10px;
             margin-top: 15px;
         }
+
         .modal-btns button {
             flex: 1;
             padding: 12px;
@@ -234,7 +243,7 @@
 
         <div id="auth-section">
             <button id="btn-login" class="btn-login-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg"
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                     style="width:18px; margin-right:8px;">
                 Login
             </button>
@@ -322,7 +331,7 @@
                 });
 
                 alert("ส่งข้อมูลเรียบร้อยแล้ว ขอบคุณที่ช่วยแจ้งเราครับ!");
-                
+
                 // Clear inputs and close
                 document.getElementById('reportDormName').value = "";
                 document.getElementById('reportDescription').value = "";
@@ -343,4 +352,5 @@
     </script>
 
 </body>
+
 </html>

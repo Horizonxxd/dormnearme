@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Dorm Map - Dorm Near Me!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --purple: #9b86bd;
-            --light-purple: #e2d5f3;
-            --nav-purple: #9154f1;
+            --purple: #7C3AED;
+            --light-purple: #EEF2FF;
+            --nav-purple: #6366F1;
         }
 
         body {
@@ -95,7 +95,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         .container {
@@ -104,7 +104,7 @@
             background: white;
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
         .map-wrapper {
@@ -140,8 +140,10 @@
 
         <div id="auth-section">
             <button id="btn-login" class="btn-login-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg"
-                    style="width:18px; margin-right:8px;">
+                <!-- Updated Google Icon Source & Styling -->
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                    alt="Google Icon"
+                    style="width:18px; height:18px; margin-right:8px; display:inline-block; vertical-align:middle;">
                 Login
             </button>
             <div id="user-info" class="hidden" style="display:flex; align-items:center; gap:10px;">
@@ -153,7 +155,8 @@
     </nav>
 
     <div class="container">
-        <h2 style="color: #2b579a; text-align: center; margin-bottom: 20px;">📍 แผนที่หอพักรอบบริเวณ</h2>
+        <!-- Updated Header Color to match theme variable -->
+        <h2 style="color: var(--purple); text-align: center; margin-bottom: 20px; font-weight: 600;">📍 แผนที่หอพักรอบบริเวณ</h2>
 
         <div class="map-wrapper">
             <iframe src="https://www.google.com/maps/d/embed?mid=1n6nSF05o3TOcwbkkbWeSiYZRZyT7D0k&ehbc=2E312F"
