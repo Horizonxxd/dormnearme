@@ -21,7 +21,7 @@
             padding: 0;
         }
 
-        /* 1. Top Announcement Bar - Matched Design System */
+        /* 1. Top Announcement Bar */
         .top-banner {
             background-color: var(--nav-purple);
             color: white;
@@ -30,7 +30,7 @@
             font-size: 14px;
         }
 
-        /* 2. Navigation Bar - Matched Design System */
+        /* 2. Navigation Bar */
         .navbar {
             background: white;
             display: flex;
@@ -58,7 +58,7 @@
             color: var(--purple);
         }
 
-        /* Auth Section Styling - Matched Design System */
+        /* Auth Section Styling */
         #auth-section {
             display: flex;
             align-items: center;
@@ -102,7 +102,7 @@
             padding: 0 20px;
         }
 
-        /* Image Gallery Overhaul */
+        /* Image Gallery */
         .gallery-container {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -244,7 +244,7 @@
             align-items: flex-start;
         }
 
-        /* Updated Pricing Section Styles */
+        /* Pricing Section Styles */
         .price-container {
             text-align: right;
             display: flex;
@@ -291,7 +291,7 @@
             color: #333;
         }
 
-        /* Flex Layout for Amenities + Map */
+        /* Layout for Amenities + Map */
         .split-layout {
             display: flex;
             gap: 30px;
@@ -306,7 +306,6 @@
             min-width: 250px;
         }
 
-        /* Grid Layout for 2-Column Amenities List */
         .amenities-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -470,51 +469,109 @@
         let currentImageIdx = 0;
         let activeImagesList = [];
 
-        async function fetchImageURL(path, fallbackUrl) {
+        const PLACEHOLDER_MAIN = 'https://via.placeholder.com/600x400';
+        const PLACEHOLDER_SIDE = 'https://via.placeholder.com/300x200';
+
+        // Safely try retrieving download URL from Firebase Storage path
+        async function fetchImageURL(path) {
             try {
                 const imgRef = ref(storage, path);
                 return await getDownloadURL(imgRef);
             } catch (error) {
-                return fallbackUrl;
+                return null;
             }
         }
 
-        // Helper function to extract or build an embeddable Google Maps iframe URL
+        // Dynamic hybrid loader checking both Firestore data and Storage paths
+        async function resolveDormImages(data) {
+            let loadedImages = [];
+
+            // ----------------------------------------------------
+            // SOURCE 1: Check Firestore Document (Array or String)
+            // ----------------------------------------------------
+            if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+                loadedImages = data.images.filter(url => typeof url === 'string' && url.trim() !== '');
+            } else if (data.image && typeof data.image === 'string') {
+                loadedImages = [data.image];
+            }
+
+            // ----------------------------------------------------
+            // SOURCE 2: Check Firebase Storage Folder Path
+            // ----------------------------------------------------
+            if (loadedImages.length === 0) {
+                const storagePaths = [
+                    `dorms/${dormId}/image1.jpg`,
+                    `dorms/${dormId}/image2.jpg`,
+                    `dorms/${dormId}/image3.jpg`
+                ];
+
+                const storageResults = await Promise.all(
+                    storagePaths.map(path => fetchImageURL(path))
+                );
+
+                loadedImages = storageResults.filter(url => url !== null);
+            }
+
+            // ----------------------------------------------------
+            // FALLBACK: Pad missing slots with placeholders
+            // ----------------------------------------------------
+            const finalImages = [
+                loadedImages[0] || PLACEHOLDER_MAIN,
+                loadedImages[1] || PLACEHOLDER_SIDE,
+                loadedImages[2] || PLACEHOLDER_SIDE
+            ];
+
+            return finalImages;
+        }
+
+        // Extract map information supporting multiple coordinate formats
         function getMapInfo(data) {
-            const rawUrl = data.mapUrl || data.googleMapLink || data.mapLink || '';
+            const rawUrl = data.mapUrl || data.googleMapLink || data.mapLink || data.locationUrl || '';
+            let lat = null;
+            let lng = null;
+
+            if (data.location && typeof data.location.latitude !== 'undefined' && typeof data.location.longitude !== 'undefined') {
+                lat = data.location.latitude;
+                lng = data.location.longitude;
+            } else if (data.lat && data.lng) {
+                lat = data.lat;
+                lng = data.lng;
+            } else if (data.latitude && data.longitude) {
+                lat = data.latitude;
+                lng = data.longitude;
+            } else if (rawUrl) {
+                const matchAt = rawUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                const match3d4d = rawUrl.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+                const matchQ = rawUrl.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+                const matchPlain = rawUrl.match(/^(-?\d+\.\d+),\s*(-?\d+\.\d+)$/);
+
+                if (match3d4d) {
+                    lat = match3d4d[1];
+                    lng = match3d4d[2];
+                } else if (matchAt) {
+                    lat = matchAt[1];
+                    lng = matchAt[2];
+                } else if (matchQ) {
+                    lat = matchQ[1];
+                    lng = matchQ[2];
+                } else if (matchPlain) {
+                    lat = matchPlain[1];
+                    lng = matchPlain[2];
+                }
+            }
+
             let embedUrl = null;
             let externalUrl = rawUrl || null;
 
-            // Direct Lat, Lng properties in database
-            if (data.location && typeof data.location.latitude !== 'undefined' && typeof data.location.longitude !== 'undefined') {
-                const lat = data.location.latitude;
-                const lng = data.location.longitude;
+            if (lat && lng) {
                 embedUrl = `https://maps.google.com/maps?q=${lat},${lng}&hl=th&z=16&output=embed`;
                 externalUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-            } else if (rawUrl) {
-                // Handle @lat,lng format inside Google Maps links
-                const atCoordsMatch = rawUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-                // Handle q=lat,lng query format
-                const qCoordsMatch = rawUrl.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-                // Handle direct lat,lng format (e.g. 13.7563,100.5018)
-                const plainCoordsMatch = rawUrl.match(/^(-?\d+\.\d+),\s*(-?\d+\.\d+)$/);
-
-                if (atCoordsMatch) {
-                    embedUrl = `https://maps.google.com/maps?q=${atCoordsMatch[1]},${atCoordsMatch[2]}&hl=th&z=16&output=embed`;
-                } else if (qCoordsMatch) {
-                    embedUrl = `https://maps.google.com/maps?q=${qCoordsMatch[1]},${qCoordsMatch[2]}&hl=th&z=16&output=embed`;
-                } else if (plainCoordsMatch) {
-                    embedUrl = `https://maps.google.com/maps?q=${plainCoordsMatch[1]},${plainCoordsMatch[2]}&hl=th&z=16&output=embed`;
-                } else {
-                    // Search query using name + Salaya for locality precision
-                    const searchQuery = data.name ? `${data.name} ศาลายา` : rawUrl;
-                    embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(searchQuery)}&hl=th&z=16&output=embed`;
-                }
             } else if (data.name) {
-                // Search query using Dorm Name + Salaya
                 const searchQuery = `${data.name} ศาลายา`;
                 embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(searchQuery)}&hl=th&z=16&output=embed`;
-                externalUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
+                if (!externalUrl) {
+                    externalUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
+                }
             }
 
             return { embedUrl, externalUrl };
@@ -526,58 +583,52 @@
                 return;
             }
 
-            const docRef = doc(db, "listings", dormId);
-            const docSnap = await getDoc(docRef);
+            try {
+                const docRef = doc(db, "listings", dormId);
+                const docSnap = await getDoc(docRef);
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
 
-                // Fetch image download URLs safely via Firebase Storage SDK
-                const images = await Promise.all([
-                    fetchImageURL(`dorms/${dormId}/image1.jpg`, 'https://via.placeholder.com/600x400'),
-                    fetchImageURL(`dorms/${dormId}/image2.jpg`, 'https://via.placeholder.com/300x200'),
-                    fetchImageURL(`dorms/${dormId}/image3.jpg`, 'https://via.placeholder.com/300x200')
-                ]);
+                    // Get images from both Firestore & Storage dynamically
+                    const images = await resolveDormImages(data);
+                    activeImagesList = images;
 
-                activeImagesList = images;
+                    const { embedUrl, externalUrl } = getMapInfo(data);
 
-                // Process map URL / coordinates dynamically
-                const { embedUrl, externalUrl } = getMapInfo(data);
+                    const currentPrice = data.price ?? data.priceMin ?? 0;
+                    const oldPrice = data.priceOld || data.oldPrice || null;
+                    const hasDiscount = oldPrice && Number(oldPrice) > Number(currentPrice);
 
-                // Pricing HTML builder (Checks 'price' field first for new dorms, fallback to 'priceMin' for existing ones)
-                const currentPrice = data.price ?? data.priceMin ?? 0;
-                const oldPrice = data.priceOld || data.oldPrice || null;
-                const hasDiscount = oldPrice && Number(oldPrice) > Number(currentPrice);
-
-                let priceHtml = '';
-                if (hasDiscount) {
-                    priceHtml = `
+                    let priceHtml = '';
+                    if (hasDiscount) {
+                        priceHtml = `
                         <div class="price-container">
                             <div class="price-old">฿${Number(oldPrice).toLocaleString()}</div>
                             <div class="price-big has-discount">฿${Number(currentPrice).toLocaleString()}</div>
                             <small style="color:#888;">ราคาพิเศษต่อเดือน</small>
                         </div>
                     `;
-                } else {
-                    priceHtml = `
+                    } else {
+                        priceHtml = `
                         <div class="price-container">
                             <div class="price-big">฿${Number(currentPrice).toLocaleString()}</div>
                             <small style="color:#888;">ราคาเริ่มต้นต่อเดือน</small>
                         </div>
                     `;
-                }
+                    }
 
-                document.title = `${data.name || 'รายละเอียดหอพัก'} - Dorm Near Me!`;
+                    document.title = `${data.name || 'รายละเอียดหอพัก'} - Dorm Near Me!`;
 
-                document.getElementById('details-content').innerHTML = `
+                    document.getElementById('details-content').innerHTML = `
                     <div class="gallery-container">
-                        <img src="${images[0]}" onerror="this.src='https://via.placeholder.com/600x400'" class="main-img" data-idx="0">
+                        <img src="${images[0]}" onerror="this.src='${PLACEHOLDER_MAIN}'" class="main-img" data-idx="0">
                         <div class="side-imgs">
                             <div class="side-img-box">
-                                <img src="${images[1]}" onerror="this.src='https://via.placeholder.com/300x200'" class="side-img" data-idx="1">
+                                <img src="${images[1]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="1">
                             </div>
                             <div class="side-img-box">
-                                <img src="${images[2]}" onerror="this.src='https://via.placeholder.com/300x200'" class="side-img" data-idx="2">
+                                <img src="${images[2]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="2">
                             </div>
                         </div>
                     </div>
@@ -652,9 +703,13 @@
                     </div>
                 `;
 
-                setupLightboxEvents();
-            } else {
-                document.getElementById('details-content').innerHTML = "<h2 style='text-align:center;'>ไม่พบข้อมูลหอพักนี้</h2>";
+                    setupLightboxEvents();
+                } else {
+                    document.getElementById('details-content').innerHTML = "<h2 style='text-align:center;'>ไม่พบข้อมูลหอพักนี้</h2>";
+                }
+            } catch (error) {
+                console.error("Error loading dorm details:", error);
+                document.getElementById('details-content').innerHTML = "<h2 style='text-align:center;'>เกิดข้อผิดพลาดในการโหลดข้อมูล</h2>";
             }
         }
 
