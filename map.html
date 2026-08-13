@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dorm Map - Dorm Near Me!</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -78,7 +79,7 @@
             padding: 8px 15px;
             border-radius: 8px;
             cursor: pointer;
-            font-family: 'Kanit';
+            font-family: 'Kanit', sans-serif;
             font-size: 14px;
             transition: 0.3s;
         }
@@ -92,6 +93,13 @@
             height: 32px;
             border-radius: 50%;
             border: 1px solid var(--purple);
+            object-fit: cover;
+        }
+
+        .user-profile-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .hidden {
@@ -100,7 +108,7 @@
 
         .container {
             max-width: 1100px;
-            margin: 0 auto;
+            margin: 0 auto 40px auto;
             background: white;
             padding: 25px;
             border-radius: 15px;
@@ -127,7 +135,7 @@
 <body>
 
     <div class="top-banner">
-        ข้อมูลที่รวบรวมมาจาก Facebook และ google map โปรดตรวจสอบข้อมูลอีกครั้ง
+        ข้อมูลที่รวบรวมมาจาก Facebook และ Google Maps โปรดตรวจสอบข้อมูลอีกครั้ง
     </div>
 
     <nav class="navbar">
@@ -140,14 +148,14 @@
 
         <div id="auth-section">
             <button id="btn-login" class="btn-login-google">
-                <!-- Updated Google Icon Source & Styling -->
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                     alt="Google Icon"
                     style="width:18px; height:18px; margin-right:8px; display:inline-block; vertical-align:middle;">
                 Login
             </button>
-            <div id="user-info" class="hidden" style="display:flex; align-items:center; gap:10px;">
-                <img id="user-photo" src="" class="user-avatar">
+
+            <div id="user-info" class="user-profile-box hidden">
+                <img id="user-photo" src="" alt="User Avatar" class="user-avatar">
                 <button id="btn-logout"
                     style="background:none; border:none; color:red; cursor:pointer; font-size:12px; font-family:'Kanit';">Logout</button>
             </div>
@@ -155,17 +163,21 @@
     </nav>
 
     <div class="container">
-        <!-- Updated Header Color to match theme variable -->
         <h2 style="color: var(--purple); text-align: center; margin-bottom: 20px; font-weight: 600;">📍 แผนที่หอพักรอบบริเวณ</h2>
 
         <div class="map-wrapper">
-            <iframe src="https://www.google.com/maps/d/embed?mid=1n6nSF05o3TOcwbkkbWeSiYZRZyT7D0k&ehbc=2E312F"
-                width="640" height="480"></iframe>
+            <iframe 
+                src="https://www.google.com/maps/d/embed?mid=1n6nSF05o3TOcwbkkbWeSiYZRZyT7D0k&ehbc=2E312F"
+                title="Dormitory Location Map"
+                loading="lazy">
+            </iframe>
         </div>
     </div>
 
     <script type="module">
         import { initAuth } from './auth.js';
+        
+        // Initialize Firebase Authentication logic
         initAuth();
     </script>
 

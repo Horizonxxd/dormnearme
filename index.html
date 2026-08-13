@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dorm Near Me!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --purple: #7C3AED;
@@ -70,13 +70,13 @@
             font-weight: bold;
         }
 
-        /* Login Button Styles - Fixed z-index & clickability */
+        /* Login Button Styles */
         #auth-section {
             display: flex;
             align-items: center;
             margin-left: auto;
             position: relative;
-            z-index: 20; /* Ensures button is clickable over header elements */
+            z-index: 20;
             pointer-events: auto;
         }
 
@@ -92,7 +92,7 @@
             font-size: 14px;
             transition: 0.3s;
             color: #333;
-            pointer-events: auto; /* Fixes unclickable touch issue */
+            pointer-events: auto;
         }
 
         .btn-login-google:hover {
@@ -255,7 +255,116 @@
             border-radius: 6px;
         }
 
-        /* 📱 RESPONSIVE MEDIA QUERIES FOR MOBILE/IPAD */
+        /* 🔥 HOT LISTINGS SECTION STYLES */
+        .hot-section {
+            max-width: 1100px;
+            margin: 0 auto 40px auto;
+            padding: 0 15px;
+            box-sizing: border-box;
+        }
+
+        .hot-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .hot-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .hot-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .hot-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .hot-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .hot-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 20px;
+            z-index: 2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hot-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+
+        .hot-body {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .hot-dorm-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+            margin: 0 0 6px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hot-dorm-price {
+            color: var(--purple);
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .hot-dorm-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: auto;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 10px;
+        }
+
+        .clicks-count {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #f59e0b;
+            font-weight: 500;
+        }
+
+        /* RESPONSIVE MEDIA QUERIES */
         @media (max-width: 900px) {
             .navbar {
                 padding: 10px;
@@ -281,6 +390,10 @@
             .btn {
                 flex: 1;
             }
+
+            .hot-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -300,7 +413,7 @@
         </div>
 
         <div id="auth-section">
-            <button id="btn-login" class="btn-login-google">
+            <button id="btn-login" class="btn-login-google" type="button">
                 <svg class="google-icon" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -311,7 +424,7 @@
             </button>
             <div id="user-info" class="hidden" style="display:flex; align-items:center; gap:10px;">
                 <img id="user-photo" src="" class="user-avatar">
-                <button id="btn-logout"
+                <button id="btn-logout" type="button"
                     style="background:none; border:none; color:red; cursor:pointer; font-size:12px; font-family:'Kanit';">Logout</button>
             </div>
         </div>
@@ -423,39 +536,71 @@
             </div>
 
             <div class="btn-group">
-                <button class="btn btn-reset" onclick="location.reload()">คืนค่า</button>
-                <button class="btn btn-confirm" id="btn-confirm">ยืนยัน</button>
+                <button type="button" class="btn btn-reset" onclick="location.reload()">คืนค่า</button>
+                <button type="button" class="btn btn-confirm" id="btn-confirm">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔥 HOT LISTINGS SECTION -->
+    <div class="hot-section">
+        <div class="hot-header">
+            <span style="font-size: 24px;">🔥</span>
+            <h3 class="hot-title">หอพักยอดนิยม (Hot Listings)</h3>
+        </div>
+        <div id="hot-listings-grid" class="hot-grid">
+            <div style="grid-column: span 3; text-align: center; color: #94a3b8; padding: 20px;">
+                กำลังโหลดหอพักยอดนิยม...
             </div>
         </div>
     </div>
 
     <script type="module">
-        import { initAuth } from './auth.js';
+        // 1. Module Imports
+        import * as AuthModule from './auth.js';
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, limit, getDocs, doc, updateDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        initAuth();
+        // 2. Safe Auth Initialization
+        if (typeof AuthModule.initAuth === 'function') {
+            try {
+                AuthModule.initAuth();
+            } catch (e) {
+                console.warn("Auth initialization warning:", e);
+            }
+        }
 
+        // 3. Obtain Firestore DB safely (either exported from auth.js or from default app)
+        let db = AuthModule.db;
+        if (!db) {
+            try {
+                const app = getApps().length > 0 ? getApp() : null;
+                if (app) {
+                    db = getFirestore(app);
+                }
+            } catch (err) {
+                console.warn("Could not retrieve active Firebase app for Firestore:", err);
+            }
+        }
+
+        // 4. Price & Distance Sliders UI
         const priceInput = document.getElementById('priceInput');
         const priceTxt = document.getElementById('priceTxt');
-
         if (priceInput && priceTxt) {
-            const updatePrice = () => {
-                priceTxt.innerText = Number(priceInput.value).toLocaleString();
-            };
+            const updatePrice = () => { priceTxt.innerText = Number(priceInput.value).toLocaleString(); };
             priceInput.oninput = updatePrice;
             updatePrice();
         }
 
         const distInput = document.getElementById('distInput');
         const distTxt = document.getElementById('distTxt');
-
         if (distInput && distTxt) {
-            const updateDist = () => {
-                distTxt.innerText = distInput.value;
-            };
+            const updateDist = () => { distTxt.innerText = distInput.value; };
             distInput.oninput = updateDist;
             updateDist();
         }
 
+        // 5. POI Filter Sliders
         const poiConfigs = [
             { id: '711', cb: document.getElementById('check711'), panel: document.getElementById('panel711'), range: document.getElementById('range711'), text: document.getElementById('txt711') },
             { id: 'pharmacy', cb: document.getElementById('checkPharmacy'), panel: document.getElementById('panelPharmacy'), range: document.getElementById('rangePharmacy'), text: document.getElementById('txtPharmacy') },
@@ -466,48 +611,132 @@
         poiConfigs.forEach(item => {
             if (item.cb) {
                 item.cb.onchange = () => {
-                    if (item.cb.checked) item.panel.classList.remove('hidden');
-                    else item.panel.classList.add('hidden');
+                    if (item.cb.checked) item.panel?.classList.remove('hidden');
+                    else item.panel?.classList.add('hidden');
                 };
             }
             if (item.range) {
                 item.range.oninput = () => {
-                    item.text.innerText = item.range.value;
+                    if (item.text) item.text.innerText = item.range.value;
                 };
             }
         });
 
-        document.getElementById('btn-confirm').onclick = function () {
-            const query = document.getElementById('searchInput').value;
-            const zone = document.getElementById('zoneSelect').value;
-            const type = document.getElementById('typeSelect').value;
-            const maxPrice = document.getElementById('priceInput').value;
-            const maxDist = document.getElementById('distInput').value;
+        // 6. Confirm Button Redirection Logic
+        const confirmBtn = document.getElementById('btn-confirm');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function (e) {
+                e.preventDefault();
 
-            const near = Array.from(document.querySelectorAll('.near-check:checked'))
-                .map(cb => cb.value);
+                const queryVal = document.getElementById('searchInput')?.value || '';
+                const zone = document.getElementById('zoneSelect')?.value || 'all';
+                const type = document.getElementById('typeSelect')?.value || 'all';
+                const maxPrice = document.getElementById('priceInput')?.value || '10000';
+                const maxDist = document.getElementById('distInput')?.value || '2000';
 
-            const amen = Array.from(document.querySelectorAll('.amen-check:checked'))
-                .map(cb => cb.value);
+                const near = Array.from(document.querySelectorAll('.near-check:checked'))
+                    .map(cb => cb.value);
 
-            const params = new URLSearchParams({
-                q: query,
-                zone: zone,
-                type: type,
-                price: maxPrice,
-                dist: maxDist,
-                near: near.join(','),
-                amen: amen.join(',')
+                const amen = Array.from(document.querySelectorAll('.amen-check:checked'))
+                    .map(cb => cb.value);
+
+                const params = new URLSearchParams({
+                    q: queryVal,
+                    zone: zone,
+                    type: type,
+                    price: maxPrice,
+                    dist: maxDist,
+                    near: near.join(','),
+                    amen: amen.join(',')
+                });
+
+                poiConfigs.forEach(item => {
+                    if (item.cb && item.cb.checked && item.range) {
+                        params.append(`dist_${item.id}`, item.range.value);
+                    }
+                });
+
+                window.location.href = `results.html?${params.toString()}`;
             });
+        }
 
-            poiConfigs.forEach(item => {
-                if (item.cb && item.cb.checked) {
-                    params.append(`dist_${item.id}`, item.range.value);
+        // 7. Load Hot Listings
+        async function loadHotListings() {
+            const container = document.getElementById('hot-listings-grid');
+            if (!container) return;
+
+            if (!db) {
+                container.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #94a3b8;">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</div>`;
+                return;
+            }
+
+            try {
+                const listingsRef = collection(db, 'listings');
+                const q = query(listingsRef, orderBy('clickCount', 'desc'), limit(3));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    container.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #94a3b8;">ยังไม่มีข้อมูลหอพักยอดนิยม</div>`;
+                    return;
                 }
-            });
 
-            window.location.href = `results.html?${params.toString()}`;
-        };
+                container.innerHTML = '';
+
+                querySnapshot.forEach((docSnap) => {
+                    const dorm = docSnap.data();
+                    const docId = docSnap.id;
+
+                    const priceStr = dorm.priceMin 
+                        ? `${Number(dorm.priceMin).toLocaleString()} บาท/เดือน` 
+                        : 'ไม่ระบุราคา';
+                    
+                    const imgUrl = (dorm.images && dorm.images.length > 0) 
+                        ? dorm.images[0] 
+                        : 'https://via.placeholder.com/400x250?text=No+Image';
+
+                    const clickCount = dorm.clickCount || 0;
+
+                    const card = document.createElement('div');
+                    card.className = 'hot-card';
+                    card.innerHTML = `
+                        <div class="hot-badge">HOT</div>
+                        <img src="${imgUrl}" alt="${dorm.name || 'Dorm'}" class="hot-img">
+                        <div class="hot-body">
+                            <h4 class="hot-dorm-title">${dorm.name || 'ไม่ระบุชื่อหอพัก'}</h4>
+                            <div class="hot-dorm-price">${priceStr}</div>
+                            <div class="hot-dorm-meta">
+                                <span>📍 ${dorm.zone || 'ไม่ระบุโซน'}</span>
+                                <span class="clicks-count">👁️ ${clickCount.toLocaleString()} เข้าชม</span>
+                            </div>
+                        </div>
+                    `;
+
+                    card.addEventListener('click', async () => {
+                        try {
+                            const dormRef = doc(db, 'listings', docId);
+                            updateDoc(dormRef, { clickCount: increment(1) }).catch(e => console.warn(e));
+
+                            addDoc(collection(db, 'click_events'), {
+                                listingId: docId,
+                                listingName: dorm.name || '',
+                                timestamp: serverTimestamp()
+                            }).catch(e => console.warn(e));
+                        } catch (e) {
+                            console.error(e);
+                        }
+
+                        window.location.href = `dorm-detail.html?id=${docId}`;
+                    });
+
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Error loading hot listings:", err);
+                container.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #ef4444;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+            }
+        }
+
+        loadHotListings();
     </script>
 </body>
 

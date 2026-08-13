@@ -3,6 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
+    <!-- CRITICAL: Allows iOS Safari and Mobile Chrome to auto-scale -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - Dorm Near Me!</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
@@ -28,7 +30,7 @@
             background-color: var(--nav-purple);
             color: white;
             text-align: center;
-            padding: 8px;
+            padding: 8px 12px;
             font-size: 14px;
         }
 
@@ -104,6 +106,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            box-sizing: border-box;
         }
 
         .contact-card {
@@ -114,6 +117,7 @@
             text-align: center;
             max-width: 400px;
             width: 100%;
+            box-sizing: border-box;
         }
 
         .contact-header {
@@ -143,6 +147,7 @@
             text-decoration: none;
             display: block;
             margin-bottom: 15px;
+            word-break: break-all;
         }
 
         .info-value:last-child {
@@ -170,6 +175,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            font-size: 15px;
         }
 
         .btn-report:hover {
@@ -183,15 +189,18 @@
             background: rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center;
             z-index: 1000;
+            padding: 15px;
+            box-sizing: border-box;
         }
 
         .modal-box {
             background: white;
             padding: 30px;
             border-radius: 20px;
-            width: 90%;
+            width: 100%;
             max-width: 400px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-sizing: border-box;
         }
 
         .modal-input {
@@ -202,6 +211,7 @@
             border-radius: 8px;
             font-family: 'Kanit';
             box-sizing: border-box;
+            font-size: 16px; /* Prevents iOS Safari zoom on focus */
         }
 
         .modal-input:focus {
@@ -223,6 +233,45 @@
             cursor: pointer;
             font-family: 'Kanit';
             font-weight: 500;
+        }
+
+        /* ==========================================
+           RESPONSIVE RULES FOR PHONES & TABLETS
+           ========================================== */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 10px 15px;
+                gap: 10px;
+            }
+
+            .nav-links {
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            .nav-item {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+
+            #auth-section {
+                border-left: none;
+                padding-left: 0;
+                border-top: 1px solid #eee;
+                width: 100%;
+                justify-content: center;
+                padding-top: 8px;
+            }
+
+            .contact-card {
+                padding: 25px 20px;
+            }
+
+            .contact-header {
+                font-size: 18px;
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -290,11 +339,11 @@
     </div>
 
     <script type="module">
-        import { auth, app, initAuth } from './auth.js';
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        // Cleaned import using shared db from auth.js
+        import { auth, db, initAuth } from './auth.js';
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         initAuth();
-        const db = getFirestore(app);
 
         // Modal Elements
         const modal = document.getElementById('reportModal');
@@ -343,7 +392,7 @@
             }
         };
 
-        // Optional: Close modal if clicking outside the box
+        // Close modal if clicking outside the box
         window.onclick = (event) => {
             if (event.target == modal) {
                 modal.classList.add('hidden');

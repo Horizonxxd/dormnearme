@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Dorm Near Me!</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -117,6 +118,19 @@
             font-weight: 500;
             font-size: 13px;
             transition: 0.2s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-preview {
+            background: var(--light-purple);
+            color: var(--purple);
+            border: 1px solid var(--purple);
+        }
+
+        .btn-preview:hover {
+            background: var(--purple);
+            color: white;
         }
 
         .btn-approve {
@@ -282,18 +296,35 @@
         const db = getFirestore(app);
         const adminEmails = ["seannakhonboy@gmail.com", "zainlawilmail@gmail.com"];
 
-        // Expose helper actions to the window object so inline HTML click elements can see them
+        // Utility function to escape HTML special characters and prevent XSS
+        function escapeHTML(str) {
+            if (!str) return '-';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Expose helper actions globally for inline event handlers
         window.updateStatus = async (id, newStatus) => {
             try {
                 await updateDoc(doc(db, "listings", id), { status: newStatus });
-            } catch (e) { console.error("Update Error:", e); }
+            } catch (e) { 
+                console.error("Update Error:", e);
+                alert("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+            }
         };
 
         window.deleteDorm = async (id) => {
             if (confirm("ยืนยันการลบข้อมูลหอพักนี้?")) {
                 try {
                     await deleteDoc(doc(db, "listings", id));
-                } catch (e) { console.error("Delete Error:", e); }
+                } catch (e) { 
+                    console.error("Delete Error:", e);
+                    alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+                }
             }
         };
 
@@ -301,20 +332,30 @@
             if (confirm("แก้ไขข้อมูลตามที่แจ้งแล้ว และต้องการลบรายงานนี้ใช่หรือไม่?")) {
                 try {
                     await deleteDoc(doc(db, "reports", id));
-                } catch (e) { console.error("Report Delete Error:", e); }
+                } catch (e) { 
+                    console.error("Report Delete Error:", e);
+                    alert("เกิดข้อผิดพลาดในการลบรายงาน");
+                }
             }
         };
 
+        // Authentication guard
         onAuthStateChanged(auth, (user) => {
             if (!user || !adminEmails.includes(user.email)) {
                 alert("Access Denied: Admin only.");
                 window.location.href = "index.html";
             } else {
                 const adminContent = document.getElementById('admin-content');
-                adminContent.classList.remove('hidden');
-                adminContent.style.display = "grid";
+                if (adminContent) {
+                    adminContent.classList.remove('hidden');
+                    adminContent.style.display = "grid";
+                }
 
-                document.getElementById('admin-email-display').innerText = user.email;
+                const emailDisplay = document.getElementById('admin-email-display');
+                if (emailDisplay) {
+                    emailDisplay.innerText = user.email;
+                }
+
                 loadDashboardData();
             }
         });
@@ -324,7 +365,10 @@
             const qPending = query(collection(db, "listings"), where("status", "==", "pending"));
             onSnapshot(qPending, (snapshot) => {
                 const list = document.getElementById('pending-list');
-                document.getElementById('stat-pending').innerText = snapshot.size;
+                const pendingStat = document.getElementById('stat-pending');
+
+                if (pendingStat) pendingStat.innerText = snapshot.size;
+                if (!list) return;
 
                 if (snapshot.empty) {
                     list.innerHTML = `<div style="text-align:center; padding:20px; color:#999; border:2px dashed #ddd; border-radius:15px;">No new requests</div>`;
@@ -334,18 +378,23 @@
                 list.innerHTML = "";
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
+                    const name = escapeHTML(data.name || 'Untitled');
+                    const zone = escapeHTML(data.zone || '-');
+                    const priceDisplay = escapeHTML(data.priceDisplay || '-');
+
                     list.innerHTML += `
                         <div class="dorm-card">
                             <div class="dorm-info">
                                 <h3>
                                     <a href="details.html?id=${docSnap.id}" target="_blank" class="dorm-link">
-                                        ${data.name || 'Untitled'} 🔗
+                                        ${name} 🔗
                                     </a>
                                 </h3>
-                                <p>โซน: ${data.zone || '-'}</p>
-                                <p>ราคา: ${data.priceDisplay || '-'}</p>
+                                <p>โซน: ${zone}</p>
+                                <p>ราคา: ${priceDisplay}</p>
                             </div>
                             <div class="action-btns">
+                                <a href="details.html?id=${docSnap.id}" target="_blank" class="btn-action btn-preview">ดูตัวอย่าง</a>
                                 <button class="btn-action btn-approve" onclick="updateStatus('${docSnap.id}', 'approved')">อนุมัติ</button>
                                 <button class="btn-action btn-reject" onclick="deleteDorm('${docSnap.id}')">ปฏิเสธ</button>
                             </div>
@@ -353,34 +402,49 @@
                 });
             });
 
-            // 2. Main Dorm List
+            // 2. Main Dorm List & Total Views Calculation
             const qAllDorms = query(collection(db, "listings"));
             onSnapshot(qAllDorms, (snapshot) => {
                 const tableBody = document.getElementById('approved-table');
+                const totalStat = document.getElementById('stat-total');
+                const viewsStat = document.getElementById('stat-views');
+
+                if (totalStat) totalStat.innerText = snapshot.size;
+                if (!tableBody) return;
+
                 tableBody.innerHTML = "";
-                document.getElementById('stat-total').innerText = snapshot.size;
+                let totalViews = 0;
 
                 if (snapshot.empty) {
                     tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No dorms found.</td></tr>";
+                    if (viewsStat) viewsStat.innerText = "0";
                     return;
                 }
 
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
+                    const name = escapeHTML(data.name || 'Untitled');
+                    const zone = escapeHTML(data.zone || '-');
+                    const priceDisplay = escapeHTML(data.priceDisplay || '-');
+                    
+                    if (data.views) totalViews += Number(data.views) || 0;
+
                     tableBody.innerHTML += `
                         <tr>
                             <td style="font-weight:500;">
                                 <a href="details.html?id=${docSnap.id}" target="_blank" class="dorm-link">
-                                    ${data.name || 'Untitled'}
+                                    ${name}
                                 </a>
                             </td>
-                            <td>${data.zone || '-'}</td>
-                            <td>${data.priceDisplay || '-'}</td>
+                            <td>${zone}</td>
+                            <td>${priceDisplay}</td>
                             <td>
                                 <button class="icon-btn" onclick="deleteDorm('${docSnap.id}')" title="Delete">🗑️</button>
                             </td>
                         </tr>`;
                 });
+
+                if (viewsStat) viewsStat.innerText = totalViews.toLocaleString();
             });
 
             // 3. User Reports
@@ -397,17 +461,16 @@
                 reportBody.innerHTML = "";
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    
-                    // Explicit lowercase naming attributes matching your real-time cloud data schema
-                    const dName = data.dormName || 'ไม่ระบุชื่อหอพัก';
-                    const rText = data.reportText || 'ไม่มีรายละเอียด';
-                    const uEmail = data.userEmail || 'ไม่ระบุอีเมล';
+                    const dName = escapeHTML(data.dormName || 'ไม่ระบุชื่อหอพัก');
+                    const rText = escapeHTML(data.reportText || 'ไม่มีรายละเอียด');
+                    const uEmail = escapeHTML(data.userEmail || 'ไม่ระบุอีเมล');
+                    const dormId = data.dormId ? data.dormId : '';
 
                     reportBody.innerHTML += `
                         <tr>
                             <td style="padding: 12px; border-bottom: 1px solid #eee;">
                                 <div style="font-weight: bold; color: var(--purple); font-size: 14px;">
-                                    🏢 ${dName}
+                                    🏢 ${dormId ? `<a href="details.html?id=${dormId}" target="_blank" class="dorm-link" style="color:var(--purple);">${dName} 🔗</a>` : dName}
                                 </div>
                                 <div style="color: #444; font-size: 13px; margin-top: 4px; line-height: 1.4;">
                                     📝 ${rText}
@@ -427,12 +490,23 @@
                 console.error("Firestore Reports Fetch Error:", error);
                 const reportBody = document.getElementById('report-table-body');
                 if (reportBody) {
-                    reportBody.innerHTML = `<tr><td colspan='2' style='text-align:center; color:red; padding:20px;'>Error: ${error.message}</td></tr>`;
+                    reportBody.innerHTML = `<tr><td colspan='2' style='text-align:center; color:red; padding:20px;'>Error: ${escapeHTML(error.message)}</td></tr>`;
                 }
             });
         }
 
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
+        // Logout listener
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) {
+            btnLogout.onclick = async () => {
+                try {
+                    await signOut(auth);
+                    window.location.href = "index.html";
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                }
+            };
+        }
     </script>
 </body>
 

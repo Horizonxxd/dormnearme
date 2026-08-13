@@ -3,6 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
+    <!-- CRITICAL: Allows mobile browsers to scale fonts and elements correctly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results - Dorm Near Me!</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -19,16 +21,16 @@
             padding: 0;
         }
 
-        /* 1. Top Announcement Bar - Matched Index */
+        /* 1. Top Announcement Bar */
         .top-banner {
             background-color: var(--nav-purple);
             color: white;
             text-align: center;
-            padding: 8px;
+            padding: 8px 12px;
             font-size: 14px;
         }
 
-        /* 2. Navigation Bar - Matched Index */
+        /* 2. Navigation Bar */
         .navbar {
             background: white;
             display: flex;
@@ -63,7 +65,7 @@
             font-weight: bold;
         }
 
-        /* Auth Section Styling - Matched Index */
+        /* Auth Section Styling */
         #auth-section {
             display: flex;
             align-items: center;
@@ -116,6 +118,7 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 15px;
+            padding: 0 15px;
         }
 
         .sort-select {
@@ -126,6 +129,7 @@
             font-family: 'Kanit';
             background: white;
             cursor: pointer;
+            font-size: 15px;
         }
 
         .sort-select:focus {
@@ -140,6 +144,7 @@
             margin: 0 auto;
             gap: 20px;
             padding: 20px;
+            box-sizing: border-box;
         }
 
         /* Results List (Left) */
@@ -153,7 +158,7 @@
             gap: 15px;
         }
 
-        /* Sidebar Filters (Right) - Matched Sidebar Style */
+        /* Sidebar Filters (Right) */
         .sidebar-filters {
             flex: 0.8;
             background: white;
@@ -163,6 +168,7 @@
             height: fit-content;
             position: sticky;
             top: 20px;
+            box-sizing: border-box;
         }
 
         /* Card Styling */
@@ -187,6 +193,7 @@
             height: 170px;
             object-fit: cover;
             background: #eee;
+            flex-shrink: 0;
         }
 
         .dorm-info {
@@ -235,6 +242,7 @@
             border: 1px solid #ddd;
             font-family: 'Kanit';
             box-sizing: border-box;
+            font-size: 16px; /* Prevents Safari zoom on focus */
         }
 
         select:focus,
@@ -253,12 +261,61 @@
             accent-color: var(--purple);
         }
 
-        /* Sub-slider panel container built for smooth sliding transitions */
+        /* Sub-slider panel container */
         .slider-panel {
             margin-top: 5px;
             margin-bottom: 10px;
             padding-left: 10px;
             border-left: 2px solid var(--purple);
+        }
+
+        /* ==========================================
+           RESPONSIVE RULES FOR PHONES & TABLETS
+           ========================================== */
+        @media (max-width: 900px) {
+            .navbar {
+                flex-direction: column;
+                padding: 10px 15px;
+                gap: 10px;
+            }
+
+            .nav-links {
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            .nav-item {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+
+            #auth-section {
+                border-left: none;
+                padding-left: 0;
+                border-top: 1px solid #eee;
+                width: 100%;
+                justify-content: center;
+                padding-top: 8px;
+            }
+
+            .main-layout {
+                flex-direction: column-reverse; /* Sidebar filters move above results on mobile */
+                padding: 15px;
+            }
+
+            .sidebar-filters {
+                position: static;
+                width: 100%;
+            }
+
+            .dorm-card {
+                flex-direction: column;
+            }
+
+            .dorm-img {
+                width: 100%;
+                height: 200px;
+            }
         }
     </style>
 </head>
@@ -409,13 +466,12 @@
     </div>
 
     <script type="module">
-        import { initAuth, app } from './auth.js';
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initAuth, db } from './auth.js';
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Initialize login logic from your auth.js
+        // Initialize authentication setup
         initAuth();
 
-        const db = getFirestore(app);
         const urlParams = new URLSearchParams(window.location.search);
 
         const fName = document.getElementById('filterName');

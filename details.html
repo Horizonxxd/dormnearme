@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dorm Details - Dorm Near Me!</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -10,6 +11,7 @@
             --purple: #7C3AED;
             --light-purple: #EEF2FF;
             --nav-purple: #6366F1;
+            --red-discount: #EF4444;
         }
 
         body {
@@ -242,10 +244,31 @@
             align-items: flex-start;
         }
 
+        /* Updated Pricing Section Styles */
+        .price-container {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .price-old {
+            color: #9CA3AF;
+            font-size: 18px;
+            text-decoration: line-through;
+            font-weight: 400;
+            margin-bottom: -4px;
+        }
+
         .price-big {
             color: var(--purple);
             font-size: 32px;
             font-weight: bold;
+            line-height: 1.1;
+        }
+
+        .price-big.has-discount {
+            color: var(--red-discount);
         }
 
         .badge {
@@ -293,11 +316,38 @@
 
         .map-wrapper {
             flex: 1.8;
-            height: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .map-iframe-box {
+            height: 320px;
             border-radius: 15px;
             overflow: hidden;
             background: #f0f0f0;
             border: 1px solid #eee;
+        }
+
+        .btn-external-map {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--light-purple);
+            color: var(--purple);
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: 0.2s;
+            text-align: center;
+        }
+
+        .btn-external-map:hover {
+            background: var(--purple);
+            color: white;
         }
 
         .amenity-item {
@@ -408,15 +458,67 @@
     <script type="module">
         import { app, initAuth } from './auth.js';
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         initAuth();
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         const urlParams = new URLSearchParams(window.location.search);
         const dormId = urlParams.get('id');
 
         let currentImageIdx = 0;
         let activeImagesList = [];
+
+        async function fetchImageURL(path, fallbackUrl) {
+            try {
+                const imgRef = ref(storage, path);
+                return await getDownloadURL(imgRef);
+            } catch (error) {
+                return fallbackUrl;
+            }
+        }
+
+        // Helper function to extract or build an embeddable Google Maps iframe URL
+        function getMapInfo(data) {
+            const rawUrl = data.mapUrl || data.googleMapLink || data.mapLink || '';
+            let embedUrl = null;
+            let externalUrl = rawUrl || null;
+
+            // Direct Lat, Lng properties in database
+            if (data.location && typeof data.location.latitude !== 'undefined' && typeof data.location.longitude !== 'undefined') {
+                const lat = data.location.latitude;
+                const lng = data.location.longitude;
+                embedUrl = `https://maps.google.com/maps?q=${lat},${lng}&hl=th&z=16&output=embed`;
+                externalUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+            } else if (rawUrl) {
+                // Handle @lat,lng format inside Google Maps links
+                const atCoordsMatch = rawUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                // Handle q=lat,lng query format
+                const qCoordsMatch = rawUrl.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+                // Handle direct lat,lng format (e.g. 13.7563,100.5018)
+                const plainCoordsMatch = rawUrl.match(/^(-?\d+\.\d+),\s*(-?\d+\.\d+)$/);
+
+                if (atCoordsMatch) {
+                    embedUrl = `https://maps.google.com/maps?q=${atCoordsMatch[1]},${atCoordsMatch[2]}&hl=th&z=16&output=embed`;
+                } else if (qCoordsMatch) {
+                    embedUrl = `https://maps.google.com/maps?q=${qCoordsMatch[1]},${qCoordsMatch[2]}&hl=th&z=16&output=embed`;
+                } else if (plainCoordsMatch) {
+                    embedUrl = `https://maps.google.com/maps?q=${plainCoordsMatch[1]},${plainCoordsMatch[2]}&hl=th&z=16&output=embed`;
+                } else {
+                    // Search query using name + Salaya for locality precision
+                    const searchQuery = data.name ? `${data.name} ศาลายา` : rawUrl;
+                    embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(searchQuery)}&hl=th&z=16&output=embed`;
+                }
+            } else if (data.name) {
+                // Search query using Dorm Name + Salaya
+                const searchQuery = `${data.name} ศาลายา`;
+                embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(searchQuery)}&hl=th&z=16&output=embed`;
+                externalUrl = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
+            }
+
+            return { embedUrl, externalUrl };
+        }
 
         async function loadDormData() {
             if (!dormId) {
@@ -430,23 +532,42 @@
             if (docSnap.exists()) {
                 const data = docSnap.data();
 
-                const bucketName = "dormnearme.firebasestorage.app";
-                const images = [
-                    `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${dormId}/image1.jpg`)}?alt=media`,
-                    `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${dormId}/image2.jpg`)}?alt=media`,
-                    `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${dormId}/image3.jpg`)}?alt=media`
-                ];
+                // Fetch image download URLs safely via Firebase Storage SDK
+                const images = await Promise.all([
+                    fetchImageURL(`dorms/${dormId}/image1.jpg`, 'https://via.placeholder.com/600x400'),
+                    fetchImageURL(`dorms/${dormId}/image2.jpg`, 'https://via.placeholder.com/300x200'),
+                    fetchImageURL(`dorms/${dormId}/image3.jpg`, 'https://via.placeholder.com/300x200')
+                ]);
 
                 activeImagesList = images;
 
-                let mapEmbedUrl = null;
-                if (data.location && typeof data.location.latitude !== 'undefined') {
-                    const lat = data.location.latitude;
-                    const lng = data.location.longitude;
-                    mapEmbedUrl = `https://maps.google.com/maps?q=${lat},${lng}&hl=th&z=15&output=embed`;
+                // Process map URL / coordinates dynamically
+                const { embedUrl, externalUrl } = getMapInfo(data);
+
+                // Pricing HTML builder (Checks 'price' field first for new dorms, fallback to 'priceMin' for existing ones)
+                const currentPrice = data.price ?? data.priceMin ?? 0;
+                const oldPrice = data.priceOld || data.oldPrice || null;
+                const hasDiscount = oldPrice && Number(oldPrice) > Number(currentPrice);
+
+                let priceHtml = '';
+                if (hasDiscount) {
+                    priceHtml = `
+                        <div class="price-container">
+                            <div class="price-old">฿${Number(oldPrice).toLocaleString()}</div>
+                            <div class="price-big has-discount">฿${Number(currentPrice).toLocaleString()}</div>
+                            <small style="color:#888;">ราคาพิเศษต่อเดือน</small>
+                        </div>
+                    `;
+                } else {
+                    priceHtml = `
+                        <div class="price-container">
+                            <div class="price-big">฿${Number(currentPrice).toLocaleString()}</div>
+                            <small style="color:#888;">ราคาเริ่มต้นต่อเดือน</small>
+                        </div>
+                    `;
                 }
 
-                document.title = `${data.name} - Dorm Near Me!`;
+                document.title = `${data.name || 'รายละเอียดหอพัก'} - Dorm Near Me!`;
 
                 document.getElementById('details-content').innerHTML = `
                     <div class="gallery-container">
@@ -464,16 +585,13 @@
                     <div class="content-card">
                         <div class="header-section">
                             <div>
-                                <h1 style="margin:0; color:#333;">${data.name}</h1>
-                                <p style="color:#666; margin: 5px 0 15px 0;">📍 ${data.zone} | ห่างจากมหาวิทยาลัย ${data.distance} เมตร</p>
+                                <h1 style="margin:0; color:#333;">${data.name || 'หอพักไม่ระบุชื่อ'}</h1>
+                                <p style="color:#666; margin: 5px 0 15px 0;">📍 ${data.zone || '-'} | ห่างจากมหาวิทยาลัย ${data.distance || '-'} เมตร</p>
                                 <div>
                                     <span class="badge">${data.type || 'หอพักรวม'}</span>
                                 </div>
                             </div>
-                            <div style="text-align: right;">
-                                <div class="price-big">฿${(data.priceMin || 0).toLocaleString()}</div>
-                                <small style="color:#888;">ราคาเริ่มต้นต่อเดือน</small>
-                            </div>
+                            ${priceHtml}
                         </div>
                     </div>
 
@@ -484,9 +602,9 @@
                                 <strong style="color:var(--purple); margin-bottom: 5px; display: block;">สิ่งอำนวยความสะดวก:</strong>
                                 
                                 <div class="amenities-grid">
-                                    ${(data.amenities || []).map(a => `
+                                    ${(data.amenities && data.amenities.length > 0) ? data.amenities.map(a => `
                                         <div class="amenity-item">◦ ${a}</div>
-                                    `).join('')}
+                                    `).join('') : '<div class="amenity-item">◦ ไม่ได้ระบุ</div>'}
                                 </div>
 
                                 <strong style="color:var(--purple); margin-top: 5px; margin-bottom: 5px; display: block;">สถานที่ใกล้เคียง:</strong>
@@ -497,16 +615,23 @@
                             </div>
 
                             <div class="map-wrapper">
-                                ${mapEmbedUrl ? `
-                                    <iframe 
-                                        width="100%" 
-                                        height="100%" 
-                                        frameborder="0" 
-                                        style="border:0;" 
-                                        src="${mapEmbedUrl}" 
-                                        allowfullscreen>
-                                    </iframe>
-                                ` : '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">ไม่มีข้อมูลพิกัดแผนที่ (โปรดตรวจสอบฟิลด์ location ใน Firestore)</div>'}
+                                <div class="map-iframe-box">
+                                    ${embedUrl ? `
+                                        <iframe 
+                                            width="100%" 
+                                            height="100%" 
+                                            frameborder="0" 
+                                            style="border:0;" 
+                                            src="${embedUrl}" 
+                                            allowfullscreen>
+                                        </iframe>
+                                    ` : '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">ไม่มีข้อมูลลิงก์หรือพิกัดแผนที่</div>'}
+                                </div>
+                                ${externalUrl ? `
+                                    <a href="${externalUrl}" target="_blank" class="btn-external-map">
+                                        📍 เปิดใน Google Maps
+                                    </a>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -515,15 +640,15 @@
                         <div class="section-title">สนใจติดต่อสอบถาม</div>
                         <div class="contact-box">
                             <div style="flex:1;">
-                                <strong style="color: #333;">เบอร์โทรศัพท์:</strong> <span style="color: var(--purple); font-weight: 600;">${data.contact || 'โปรดติดต่อผ่าน Facebook'}</span> <br>
+                                <strong style="color: #333;">เบอร์โทรศัพท์:</strong> <span style="color: var(--purple); font-weight: 600;">${data.contact || data.phone || 'โปรดติดต่อผ่าน Facebook'}</span> <br>
                                 <small style="color:#666;">แจ้งว่าติดต่อมาจากเว็บไซต์ "Dorm Near Me!"</small>
                             </div>
-                            <a href="tel:${data.contact}" class="btn-call">📞 โทรเลย</a>
+                            <a href="tel:${data.contact || data.phone || ''}" class="btn-call">📞 โทรเลย</a>
                         </div>
                     </div>
 
                     <div style="text-align: center; margin-bottom: 40px;">
-                        <a href="results.html" style="color: var(--purple); font-weight: 500; text-decoration:none;">← กลับไปหน้าผลการค้นหา</a>
+                        <a href="index.html" style="color: var(--purple); font-weight: 500; text-decoration:none;">← กลับไปหน้าหลัก</a>
                     </div>
                 `;
 
