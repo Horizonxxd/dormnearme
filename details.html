@@ -5,64 +5,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dorm Details - Dorm Near Me!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --purple: #7C3AED;
             --light-purple: #EEF2FF;
             --nav-purple: #6366F1;
             --red-discount: #EF4444;
+            --text-dark: #1F2937;
+            --text-muted: #6B7280;
+            --border-color: #E5E7EB;
+            --card-bg: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Kanit', sans-serif;
-            background-color: #f9f9f9;
+            background-color: #F9FAFB;
+            color: var(--text-dark);
             margin: 0;
             padding: 0;
         }
 
-        /* 1. Top Announcement Bar */
+        /* Top Announcement Bar */
         .top-banner {
             background-color: var(--nav-purple);
             color: white;
             text-align: center;
-            padding: 8px;
+            padding: 8px 16px;
             font-size: 14px;
+            font-weight: 300;
         }
 
-        /* 2. Navigation Bar */
+        /* Navigation Bar */
         .navbar {
             background: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 50px;
-            border-bottom: 1px solid #eee;
+            padding: 0 40px;
+            height: 64px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .nav-links {
             display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         .nav-item {
-            padding: 15px 25px;
+            padding: 8px 12px;
             cursor: pointer;
-            color: #555;
+            color: var(--text-dark);
             font-weight: 400;
             text-decoration: none;
-            transition: 0.2s;
-            display: inline-block;
+            transition: color 0.2s;
+            font-size: 15px;
         }
 
         .nav-item:hover {
             color: var(--purple);
         }
 
-        /* Auth Section Styling */
+        /* Auth Section */
         #auth-section {
             display: flex;
             align-items: center;
-            border-left: 1px solid #eee;
+            border-left: 1px solid var(--border-color);
             padding-left: 20px;
         }
 
@@ -70,13 +86,13 @@
             display: flex;
             align-items: center;
             background: white;
-            border: 1px solid #ddd;
-            padding: 8px 15px;
+            border: 1px solid #D1D5DB;
+            padding: 6px 16px;
             border-radius: 8px;
             cursor: pointer;
             font-family: 'Kanit';
             font-size: 14px;
-            transition: 0.3s;
+            transition: all 0.2s;
         }
 
         .btn-login-google:hover {
@@ -88,73 +104,415 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            border: 1px solid var(--purple);
+            border: 2px solid var(--purple);
         }
 
         .hidden {
             display: none !important;
         }
 
-        /* Detail Layout */
+        /* Main Container Layout */
         .container {
-            max-width: 1000px;
-            margin: 30px auto;
+            max-width: 1120px;
+            margin: 24px auto 60px;
             padding: 0 20px;
         }
 
-        /* Image Gallery */
+        /* Dorm Header Title & Actions */
+        .dorm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .dorm-title-section h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--purple);
+            margin: 0 0 6px 0;
+        }
+
+        .dorm-location-sub {
+            color: var(--text-muted);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-family: 'Kanit';
+            font-size: 14px;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-icon-action:hover {
+            background: #F3F4F6;
+        }
+
+        /* Image Gallery Layout (4 Grid Style) */
         .gallery-container {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 10px;
-            height: 400px;
-            border-radius: 20px;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 12px;
+            height: 420px;
+            border-radius: 16px;
             overflow: hidden;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 32px;
+            position: relative;
         }
 
         .main-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            background: #eee;
+            background: #E5E7EB;
             cursor: pointer;
             transition: opacity 0.2s;
         }
 
-        .main-img:hover,
-        .side-img:hover {
-            opacity: 0.9;
-        }
-
-        .side-imgs {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .side-imgs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 12px;
             height: 100%;
-            overflow: hidden;
         }
 
         .side-img-box {
-            flex: 1;
-            height: 50%;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            background: #eaeaea;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
+            background: #E5E7EB;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
         }
 
         .side-img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s, opacity 0.2s;
+        }
+
+        .main-img:hover,
+        .side-img-box:hover .side-img {
+            opacity: 0.92;
+            transform: scale(1.02);
+        }
+
+        .btn-gallery-all {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dark);
             cursor: pointer;
-            transition: opacity 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Main Content Layout (Split Left Content & Right Sidebar) */
+        .details-grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .section-block {
+            margin-bottom: 36px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 12px;
+        }
+
+        .description-text {
+            color: #4B5563;
+            line-height: 1.7;
+            font-size: 15px;
+            margin: 0;
+        }
+
+        /* Amenities Grid Cards */
+        .amenities-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .amenity-card {
+            background: var(--light-purple);
+            padding: 14px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .amenity-icon {
+            font-size: 20px;
+            line-height: 1;
+            color: var(--purple);
+        }
+
+        .amenity-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .amenity-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .amenity-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Map & Nearby Layout */
+        .map-section-wrapper {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: #F3F4F6;
+            height: 300px;
+            margin-top: 16px;
+        }
+
+        .map-iframe-box {
+            width: 100%;
+            height: 100%;
+        }
+
+        .nearby-overlay-card {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(6px);
+            padding: 14px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            max-width: 230px;
+            font-size: 13px;
+            z-index: 2;
+        }
+
+        .nearby-overlay-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .nearby-item {
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nearby-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .btn-external-map-bar {
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        /* Sticky Floating Sidebar Booking Card */
+        .booking-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
+            position: sticky;
+            top: 88px;
+            z-index: 10;
+        }
+
+        .price-box-highlight {
+            background: linear-gradient(135deg, var(--light-purple) 0%, #FFFFFF 100%);
+            border: 1px solid #E0E7FF;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .price-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .price-label-sm {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .price-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--purple);
+            line-height: 1.1;
+        }
+
+        .price-amount.has-discount {
+            color: var(--red-discount);
+        }
+
+        .price-old-strike {
+            font-size: 16px;
+            color: #9CA3AF;
+            text-decoration: line-through;
+            margin-right: 6px;
+        }
+
+        .room-status-badge {
+            background: #DEF7EC;
+            color: #03543F;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .booking-field-group {
+            background: #F9FAFB;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+        }
+
+        .booking-field-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .booking-field-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-top: 2px;
+        }
+
+        .btn-primary-action {
+            width: 100%;
+            background: var(--purple);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-family: 'Kanit';
+            font-weight: 500;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            margin-top: 16px;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+        }
+
+        .btn-primary-action:hover {
+            opacity: 0.92;
+        }
+
+        .btn-secondary-action {
+            width: 100%;
+            background: white;
+            color: var(--purple);
+            border: 1px solid var(--purple);
+            padding: 12px;
+            border-radius: 10px;
+            font-family: 'Kanit';
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        .btn-secondary-action:hover {
+            background: var(--light-purple);
+        }
+
+        .sidebar-footer-note {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .contact-person-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .contact-avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-purple);
+            color: var(--purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
         }
 
         /* Lightbox Overlay Styles */
@@ -200,19 +558,17 @@
             top: 50%;
             transform: translateY(-50%);
             color: #fff;
-            font-size: 50px;
+            font-size: 40px;
             font-weight: bold;
-            padding: 16px;
             cursor: pointer;
             transition: 0.2s;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 50%;
             width: 50px;
             height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-decoration: none;
         }
 
         .lightbox-prev {
@@ -229,187 +585,28 @@
             color: var(--light-purple);
         }
 
-        /* Content Cards */
-        .content-card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-        }
-
-        .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        /* Pricing Section Styles */
-        .price-container {
-            text-align: right;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-
-        .price-old {
-            color: #9CA3AF;
-            font-size: 18px;
-            text-decoration: line-through;
-            font-weight: 400;
-            margin-bottom: -4px;
-        }
-
-        .price-big {
-            color: var(--purple);
-            font-size: 32px;
-            font-weight: bold;
-            line-height: 1.1;
-        }
-
-        .price-big.has-discount {
-            color: var(--red-discount);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 5px 15px;
-            background: var(--light-purple);
-            color: var(--purple);
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            margin-right: 10px;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            border-bottom: 2px solid var(--light-purple);
-            padding-bottom: 5px;
-            color: #333;
-        }
-
-        /* Layout for Amenities + Map */
-        .split-layout {
-            display: flex;
-            gap: 30px;
-            align-items: flex-start;
-        }
-
-        .amenity-list-vertical {
-            flex: 1.2;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 250px;
-        }
-
-        .amenities-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .map-wrapper {
-            flex: 1.8;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .map-iframe-box {
-            height: 320px;
-            border-radius: 15px;
-            overflow: hidden;
-            background: #f0f0f0;
-            border: 1px solid #eee;
-        }
-
-        .btn-external-map {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: var(--light-purple);
-            color: var(--purple);
-            padding: 10px 15px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            transition: 0.2s;
-            text-align: center;
-        }
-
-        .btn-external-map:hover {
-            background: var(--purple);
-            color: white;
-        }
-
-        .amenity-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            color: #444;
-        }
-
-        .contact-box {
-            background: var(--light-purple);
-            padding: 20px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .btn-call {
-            background: var(--purple);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.3s;
-            display: inline-block;
-        }
-
-        .btn-call:hover {
-            opacity: 0.9;
-            transform: scale(1.03);
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
-        }
-
-        @media (max-width: 768px) {
-            .split-layout {
-                flex-direction: column;
-            }
-
-            .map-wrapper {
-                width: 100%;
-                flex: none;
-            }
-
-            .amenities-grid {
+        /* Responsive */
+        @media (max-width: 900px) {
+            .details-grid-layout {
                 grid-template-columns: 1fr;
             }
 
             .gallery-container {
                 grid-template-columns: 1fr;
-                height: auto;
+                height: 280px;
             }
 
-            .side-imgs {
-                flex-direction: row;
-                height: 150px;
+            .side-imgs-grid {
+                display: none;
             }
 
-            .side-img-box {
-                height: 100%;
-                width: 50%;
+            .amenities-cards-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .booking-card {
+                position: relative;
+                top: 0;
             }
         }
     </style>
@@ -444,7 +641,7 @@
     </nav>
 
     <div class="container" id="details-content">
-        <h2 style="text-align: center; margin-top: 50px; color: var(--purple);">กำลังโหลดข้อมูลหอพัก...</h2>
+        <h2 style="text-align: center; margin-top: 80px; color: var(--purple);">กำลังโหลดข้อมูลหอพัก...</h2>
     </div>
 
     <div id="lightbox" class="lightbox-modal">
@@ -472,7 +669,6 @@
         const PLACEHOLDER_MAIN = 'https://via.placeholder.com/600x400';
         const PLACEHOLDER_SIDE = 'https://via.placeholder.com/300x200';
 
-        // Safely try retrieving download URL from Firebase Storage path
         async function fetchImageURL(path) {
             try {
                 const imgRef = ref(storage, path);
@@ -482,27 +678,21 @@
             }
         }
 
-        // Dynamic hybrid loader checking both Firestore data and Storage paths
         async function resolveDormImages(data) {
             let loadedImages = [];
 
-            // ----------------------------------------------------
-            // SOURCE 1: Check Firestore Document (Array or String)
-            // ----------------------------------------------------
             if (data.images && Array.isArray(data.images) && data.images.length > 0) {
                 loadedImages = data.images.filter(url => typeof url === 'string' && url.trim() !== '');
             } else if (data.image && typeof data.image === 'string') {
                 loadedImages = [data.image];
             }
 
-            // ----------------------------------------------------
-            // SOURCE 2: Check Firebase Storage Folder Path
-            // ----------------------------------------------------
             if (loadedImages.length === 0) {
                 const storagePaths = [
                     `dorms/${dormId}/image1.jpg`,
                     `dorms/${dormId}/image2.jpg`,
-                    `dorms/${dormId}/image3.jpg`
+                    `dorms/${dormId}/image3.jpg`,
+                    `dorms/${dormId}/image4.jpg`
                 ];
 
                 const storageResults = await Promise.all(
@@ -512,19 +702,16 @@
                 loadedImages = storageResults.filter(url => url !== null);
             }
 
-            // ----------------------------------------------------
-            // FALLBACK: Pad missing slots with placeholders
-            // ----------------------------------------------------
             const finalImages = [
                 loadedImages[0] || PLACEHOLDER_MAIN,
                 loadedImages[1] || PLACEHOLDER_SIDE,
-                loadedImages[2] || PLACEHOLDER_SIDE
+                loadedImages[2] || PLACEHOLDER_SIDE,
+                loadedImages[3] || PLACEHOLDER_SIDE
             ];
 
             return finalImages;
         }
 
-        // Extract map information supporting multiple coordinate formats
         function getMapInfo(data) {
             const rawUrl = data.mapUrl || data.googleMapLink || data.mapLink || data.locationUrl || '';
             let lat = null;
@@ -590,7 +777,6 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
 
-                    // Get images from both Firestore & Storage dynamically
                     const images = await resolveDormImages(data);
                     activeImagesList = images;
 
@@ -600,108 +786,151 @@
                     const oldPrice = data.priceOld || data.oldPrice || null;
                     const hasDiscount = oldPrice && Number(oldPrice) > Number(currentPrice);
 
-                    let priceHtml = '';
-                    if (hasDiscount) {
-                        priceHtml = `
-                        <div class="price-container">
-                            <div class="price-old">฿${Number(oldPrice).toLocaleString()}</div>
-                            <div class="price-big has-discount">฿${Number(currentPrice).toLocaleString()}</div>
-                            <small style="color:#888;">ราคาพิเศษต่อเดือน</small>
-                        </div>
-                    `;
-                    } else {
-                        priceHtml = `
-                        <div class="price-container">
-                            <div class="price-big">฿${Number(currentPrice).toLocaleString()}</div>
-                            <small style="color:#888;">ราคาเริ่มต้นต่อเดือน</small>
-                        </div>
-                    `;
-                    }
-
                     document.title = `${data.name || 'รายละเอียดหอพัก'} - Dorm Near Me!`;
 
                     document.getElementById('details-content').innerHTML = `
-                    <div class="gallery-container">
-                        <img src="${images[0]}" onerror="this.src='${PLACEHOLDER_MAIN}'" class="main-img" data-idx="0">
-                        <div class="side-imgs">
-                            <div class="side-img-box">
-                                <img src="${images[1]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="1">
+                        <!-- Header Section -->
+                        <div class="dorm-header">
+                            <div class="dorm-title-section">
+                                <h1>${data.name || 'หอพักไม่ระบุชื่อ'}</h1>
+                                <div class="dorm-location-sub">
+                                    <span>📍 ${data.zone || 'โซนทั่วไป'}</span>
+                                    <span>•</span>
+                                    <span>ห่างจากมหาวิทยาลัย ${data.distance || '-'} เมตร</span>
+                                </div>
                             </div>
-                            <div class="side-img-box">
-                                <img src="${images[2]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="2">
+                            <div class="header-actions">
+                                <a href="results.html" class="btn-icon-action">← กลับ</a>
+                                <button class="btn-icon-action" onclick="navigator.clipboard.writeText(window.location.href); alert('คัดลอกลิงก์แล้ว!');">🔗 แชร์</button>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="content-card">
-                        <div class="header-section">
+                        <!-- Image Gallery Component -->
+                        <div class="gallery-container">
+                            <img src="${images[0]}" onerror="this.src='${PLACEHOLDER_MAIN}'" class="main-img" data-idx="0">
+                            <div class="side-imgs-grid">
+                                <div class="side-img-box"><img src="${images[1]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="1"></div>
+                                <div class="side-img-box"><img src="${images[2]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="2"></div>
+                                <div class="side-img-box"><img src="${images[3] || images[0]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="3"></div>
+                                <div class="side-img-box"><img src="${images[0]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="0"></div>
+                            </div>
+                            <button class="btn-gallery-all" id="btn-open-lightbox">📷 แสดงรูปภาพทั้งหมด (${images.length})</button>
+                        </div>
+
+                        <!-- Content & Sticky Floating Sidebar Grid -->
+                        <div class="details-grid-layout">
+                            <!-- Left Details Container -->
                             <div>
-                                <h1 style="margin:0; color:#333;">${data.name || 'หอพักไม่ระบุชื่อ'}</h1>
-                                <p style="color:#666; margin: 5px 0 15px 0;">📍 ${data.zone || '-'} | ห่างจากมหาวิทยาลัย ${data.distance || '-'} เมตร</p>
-                                <div>
-                                    <span class="badge">${data.type || 'หอพักรวม'}</span>
+                                <!-- Amenities Block -->
+                                <div class="section-block">
+                                    <div class="section-title">สิ่งอำนวยความสะดวก</div>
+                                    <div class="amenities-cards-grid">
+                                        ${(data.amenities && data.amenities.length > 0) ? data.amenities.map(a => `
+                                            <div class="amenity-card">
+                                                <div class="amenity-icon">✦</div>
+                                                <div class="amenity-info">
+                                                    <span class="amenity-name">${a}</span>
+                                                    <span class="amenity-desc">พร้อมใช้งาน</span>
+                                                </div>
+                                            </div>
+                                        `).join('') : `
+                                            <div class="amenity-card">
+                                                <div class="amenity-icon">📶</div>
+                                                <div class="amenity-info"><span class="amenity-name">Wi-Fi</span><span class="amenity-desc">อินเทอร์เน็ตความเร็วสูง</span></div>
+                                            </div>
+                                            <div class="amenity-card">
+                                                <div class="amenity-icon">❄️</div>
+                                                <div class="amenity-info"><span class="amenity-name">เครื่องปรับอากาศ</span><span class="amenity-desc">ประหยัดไฟ</span></div>
+                                            </div>
+                                            <div class="amenity-card">
+                                                <div class="amenity-icon">🔒</div>
+                                                <div class="amenity-info"><span class="amenity-name">ระบบรักษาความปลอดภัย</span><span class="amenity-desc">CCTV + Keycard</span></div>
+                                            </div>
+                                        `}
+                                    </div>
+                                </div>
+
+                                <!-- Map & Location Block -->
+                                <div class="section-block">
+                                    <div class="section-title">ตำแหน่งที่ตั้ง</div>
+                                    <div class="map-section-wrapper">
+                                        <div class="nearby-overlay-card">
+                                            <div class="nearby-overlay-title">สถานที่ใกล้เคียง</div>
+                                            <div class="nearby-item"><span>🛒</span> 7-11: ${data.distances && data.distances.sevenEleven ? data.distances.sevenEleven + ' ม.' : '-'}</div>
+                                            <div class="nearby-item"><span>🧺</span> ซักอบผ้า: ${data.distances && data.distances.laundry ? data.distances.laundry + ' ม.' : '-'}</div>
+                                            <div class="nearby-item"><span>💊</span> ร้านขายยา: ${data.distances && data.distances.pharma ? data.distances.pharma + ' ม.' : '-'}</div>
+                                            <div class="nearby-item"><span>🏬</span> ตลาด: ${data.distances && data.distances.market ? data.distances.market + ' ม.' : '-'}</div>
+                                        </div>
+
+                                        <div class="map-iframe-box">
+                                            ${embedUrl ? `
+                                                <iframe 
+                                                    width="100%" 
+                                                    height="100%" 
+                                                    frameborder="0" 
+                                                    style="border:0;" 
+                                                    src="${embedUrl}" 
+                                                    allowfullscreen>
+                                                </iframe>
+                                            ` : '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">ไม่มีข้อมูลลิงก์หรือพิกัดแผนที่</div>'}
+                                        </div>
+                                    </div>
+                                    ${externalUrl ? `
+                                        <div class="btn-external-map-bar">
+                                            <a href="${externalUrl}" target="_blank" class="btn-icon-action" style="font-size:13px; color:var(--purple);">📍 เปิดดูใน Google Maps</a>
+                                        </div>
+                                    ` : ''}
                                 </div>
                             </div>
-                            ${priceHtml}
-                        </div>
-                    </div>
 
-                    <div class="content-card">
-                        <div class="section-title">รายละเอียดและที่ตั้ง</div>
-                        <div class="split-layout">
-                            <div class="amenity-list-vertical">
-                                <strong style="color:var(--purple); margin-bottom: 5px; display: block;">สิ่งอำนวยความสะดวก:</strong>
-                                
-                                <div class="amenities-grid">
-                                    ${(data.amenities && data.amenities.length > 0) ? data.amenities.map(a => `
-                                        <div class="amenity-item">◦ ${a}</div>
-                                    `).join('') : '<div class="amenity-item">◦ ไม่ได้ระบุ</div>'}
+                            <!-- Right Floating Sticky Booking Sidebar -->
+                            <div class="booking-card">
+                                <div class="price-box-highlight">
+                                    <div class="price-header">
+                                        <div>
+                                            <span class="price-label-sm">ราคาห้องพัก</span>
+                                            <div>
+                                                ${hasDiscount ? `<span class="price-old-strike">฿${Number(oldPrice).toLocaleString()}</span>` : ''}
+                                                <span class="price-amount ${hasDiscount ? 'has-discount' : ''}">฿${Number(currentPrice).toLocaleString()}</span>
+                                                <span style="font-size:13px; color:var(--text-muted);">/เดือน</span>
+                                            </div>
+                                        </div>
+                                        <span class="room-status-badge">${data.type || 'หอพัก'}</span>
+                                    </div>
                                 </div>
 
-                                <strong style="color:var(--purple); margin-top: 5px; margin-bottom: 5px; display: block;">สถานที่ใกล้เคียง:</strong>
-                                <div class="amenity-item">• ห่างจาก 7-11: ${data.distances && data.distances.sevenEleven ? data.distances.sevenEleven + ' เมตร' : '-'}</div>
-                                <div class="amenity-item">• ห่างจาก ร้านซักอบผ้า: ${data.distances && data.distances.laundry ? data.distances.laundry + ' เมตร' : '-'}</div>
-                                <div class="amenity-item">• ห่างจาก ร้านขายยา: ${data.distances && data.distances.pharma ? data.distances.pharma + ' เมตร' : '-'}</div>
-                                <div class="amenity-item">• ห่างจาก ตลาด: ${data.distances && data.distances.market ? data.distances.market + ' เมตร' : '-'}</div>
-                            </div>
-
-                            <div class="map-wrapper">
-                                <div class="map-iframe-box">
-                                    ${embedUrl ? `
-                                        <iframe 
-                                            width="100%" 
-                                            height="100%" 
-                                            frameborder="0" 
-                                            style="border:0;" 
-                                            src="${embedUrl}" 
-                                            allowfullscreen>
-                                        </iframe>
-                                    ` : '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">ไม่มีข้อมูลลิงก์หรือพิกัดแผนที่</div>'}
+                                <div class="booking-field-group">
+                                    <span class="booking-field-label">เบอร์โทรศัพท์ติดต่อ</span>
+                                    <div class="booking-field-value">${data.contact || data.phone || 'โปรดติดต่อผ่าน Facebook'}</div>
                                 </div>
-                                ${externalUrl ? `
-                                    <a href="${externalUrl}" target="_blank" class="btn-external-map">
-                                        📍 เปิดใน Google Maps
-                                    </a>
-                                ` : ''}
+
+                                <div class="booking-field-group">
+                                    <span class="booking-field-label">ระยะทางถึง มหาวิทยาลัย</span>
+                                    <div class="booking-field-value">${data.distance || '-'} เมตร</div>
+                                </div>
+
+                                <a href="tel:${data.contact || data.phone || ''}" class="btn-primary-action">
+                                    📞 Contact Owner (ติดต่อเจ้าของ)
+                                </a>
+
+                                <a href="${externalUrl || '#'}" target="_blank" class="btn-secondary-action">
+                                    🗺️ นัดหมายดูห้องพัก / แผนที่
+                                </a>
+
+                                <div class="contact-person-info">
+                                    <div class="contact-avatar-placeholder">🏠</div>
+                                    <div>
+                                        <div style="font-size:13px; font-weight:600; color:var(--text-dark);">ผู้ดูแลข้อมูล</div>
+                                        <div style="font-size:12px; color:var(--text-muted);">แจ้งว่าติดต่อมาจาก "Dorm Near Me!"</div>
+                                    </div>
+                                </div>
+
+                                <div class="sidebar-footer-note">
+                                    ไม่มีค่าใช้จ่ายแอบแฝง • ระบบความปลอดภัยสูง
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="content-card">
-                        <div class="section-title">สนใจติดต่อสอบถาม</div>
-                        <div class="contact-box">
-                            <div style="flex:1;">
-                                <strong style="color: #333;">เบอร์โทรศัพท์:</strong> <span style="color: var(--purple); font-weight: 600;">${data.contact || data.phone || 'โปรดติดต่อผ่าน Facebook'}</span> <br>
-                                <small style="color:#666;">แจ้งว่าติดต่อมาจากเว็บไซต์ "Dorm Near Me!"</small>
-                            </div>
-                            <a href="tel:${data.contact || data.phone || ''}" class="btn-call">📞 โทรเลย</a>
-                        </div>
-                    </div>
-
-                    <div style="text-align: center; margin-bottom: 40px;">
-                        <a href="index.html" style="color: var(--purple); font-weight: 500; text-decoration:none;">← กลับไปหน้าหลัก</a>
-                    </div>
-                `;
+                    `;
 
                     setupLightboxEvents();
                 } else {
@@ -717,11 +946,16 @@
             const lightbox = document.getElementById('lightbox');
             const lightboxImg = document.getElementById('lightbox-img');
 
-            document.querySelector('.gallery-container').addEventListener('click', (e) => {
-                if (e.target.tagName === 'IMG') {
-                    currentImageIdx = parseInt(e.target.getAttribute('data-idx'), 10);
+            const imagesToClick = document.querySelectorAll('.gallery-container img');
+            imagesToClick.forEach(img => {
+                img.addEventListener('click', (e) => {
+                    currentImageIdx = parseInt(e.target.getAttribute('data-idx') || '0', 10);
                     openLightbox(activeImagesList[currentImageIdx]);
-                }
+                });
+            });
+
+            document.getElementById('btn-open-lightbox')?.addEventListener('click', () => {
+                openLightbox(activeImagesList[0]);
             });
 
             function openLightbox(src) {
