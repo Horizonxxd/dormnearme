@@ -771,8 +771,15 @@
             }
 
             try {
-                const docRef = doc(db, "listings", dormId);
-                const docSnap = await getDoc(docRef);
+                // 1. Try fetching from 'listings' collection
+                let docRef = doc(db, "listings", dormId);
+                let docSnap = await getDoc(docRef);
+
+                // 2. Fallback to 'pendingListings' collection if not found in live listings
+                if (!docSnap.exists()) {
+                    docRef = doc(db, "pendingListings", dormId);
+                    docSnap = await getDoc(docRef);
+                }
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();

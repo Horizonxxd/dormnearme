@@ -602,9 +602,8 @@
             saveBtn.innerText = "กำลังอัปโหลดรูปภาพ...";
 
             try {
-                // Generate dynamic Firestore document reference
-                const listingsRef = collection(db, "listings");
-                const newDormDoc = doc(listingsRef);
+                // Point document to "pendingListings" collection using the dorm's name as the document ID
+                const newDormDoc = doc(db, "pendingListings", dormName);
                 const dormId = newDormDoc.id;
 
                 // Batch upload images to Firebase Storage
@@ -640,8 +639,8 @@
                 const data = {
                     name: dormName,
                     details: document.getElementById('dorm-details').value.trim(),
-                    mapUrl: mapUrl, // Saved Google Maps URL
-                    status: "pending", // Pending approval flag for admin review
+                    mapUrl: mapUrl,
+                    status: "pending",
                     price: Number(document.getElementById('dorm-price').value) || 0,
                     distance: Number(document.getElementById('uni-distance').value) || 0,
                     phone: phone,
@@ -656,7 +655,7 @@
                     timestamp: new Date()
                 };
 
-                // Save record into Firestore
+                // Save record directly into pendingListings
                 await setDoc(newDormDoc, data);
 
                 alert("ส่งข้อมูลเรียบร้อยแล้ว! ข้อมูลจะถูกตรวจสอบโดย Admin ก่อนแสดงบนเว็บไซต์ 🎉");

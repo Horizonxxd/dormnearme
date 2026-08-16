@@ -290,7 +290,7 @@
 
     <script type="module">
         import { auth, app } from './auth.js';
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const db = getFirestore(app);
@@ -307,13 +307,41 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // Expose helper actions globally for inline event handlers
-        window.updateStatus = async (id, newStatus) => {
+        // Approve Function: Copy document to 'listings' and remove from 'pendingListings'
+        window.approveDorm = async (id) => {
             try {
-                await updateDoc(doc(db, "listings", id), { status: newStatus });
-            } catch (e) { 
-                console.error("Update Error:", e);
-                alert("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+                const pendingRef = doc(db, "pendingListings", id);
+                const pendingSnap = await getDoc(pendingRef);
+
+                if (pendingSnap.exists()) {
+                    const data = pendingSnap.data();
+                    
+                    // Optional: remove temporary status flag if present
+                    delete data.status;
+
+                    // Add to live listings using the same ID (or auto-ID using doc(collection(db, "listings")))
+                    await setDoc(doc(db, "listings", id), data);
+                    
+                    // Remove from pending collection
+                    await deleteDoc(pendingRef);
+                } else {
+                    alert("ไม่พบข้อมูลหอพักนี้");
+                }
+            } catch (e) {
+                console.error("Approve Error:", e);
+                alert("เกิดข้อผิดพลาดในการอนุมัติหอพัก");
+            }
+        };
+
+        // Reject / Delete Pending Function
+        window.rejectPending = async (id) => {
+            if (confirm("ยืนยันการปฏิเสธและลบรายการคำขอนี้?")) {
+                try {
+                    await deleteDoc(doc(db, "pendingListings", id));
+                } catch (e) {
+                    console.error("Reject Error:", e);
+                    alert("เกิดข้อผิดพลาดในการปฏิเสธรายการ");
+                }
             }
         };
 
@@ -361,8 +389,8 @@
         });
 
         function loadDashboardData() {
-            // 1. Pending Requests
-            const qPending = query(collection(db, "listings"), where("status", "==", "pending"));
+            // 1. Pending Requests (Fetches all documents in pendingListings)
+            const qPending = query(collection(db, "pendingListings"));
             onSnapshot(qPending, (snapshot) => {
                 const list = document.getElementById('pending-list');
                 const pendingStat = document.getElementById('stat-pending');
@@ -371,7 +399,7 @@
                 if (!list) return;
 
                 if (snapshot.empty) {
-                    list.innerHTML = `<div style="text-align:center; padding:20px; color:#999; border:2px dashed #ddd; border-radius:15px;">No new requests</div>`;
+                    list.innerHTML = `<div style="text-align:center; padding:20px; color:#999; border:2px dashed #ddd; border-radius:15px;">ไม่มีรายการรอการตรวจสอบ</div>`;
                     return;
                 }
 
@@ -395,8 +423,8 @@
                             </div>
                             <div class="action-btns">
                                 <a href="details.html?id=${docSnap.id}" target="_blank" class="btn-action btn-preview">ดูตัวอย่าง</a>
-                                <button class="btn-action btn-approve" onclick="updateStatus('${docSnap.id}', 'approved')">อนุมัติ</button>
-                                <button class="btn-action btn-reject" onclick="deleteDorm('${docSnap.id}')">ปฏิเสธ</button>
+                                <button class="btn-action btn-approve" onclick="approveDorm('${docSnap.id}')">อนุมัติ</button>
+                                <button class="btn-action btn-reject" onclick="rejectPending('${docSnap.id}')">ปฏิเสธ</button>
                             </div>
                         </div>`;
                 });
