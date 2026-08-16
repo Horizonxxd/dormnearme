@@ -253,6 +253,24 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- HOT LISTINGS & CLICK STATS BELOW REPORTS -->
+            <div class="table-container" style="margin-top: 30px; border-top: 4px solid var(--purple);">
+                <h3 style="margin-top: 0;">🔥 Hot Listings (ยอดคลิกเข้าชมหอพัก)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ชื่อหอพัก</th>
+                            <th>จำนวนการคลิกชม</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hot-listings-table">
+                        <tr>
+                            <td colspan="2">กำลังโหลดข้อมูลยอดคลิก...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="main-section">
@@ -434,6 +452,7 @@
             const qAllDorms = query(collection(db, "listings"));
             onSnapshot(qAllDorms, (snapshot) => {
                 const tableBody = document.getElementById('approved-table');
+                const hotTableBody = document.getElementById('hot-listings-table');
                 const totalStat = document.getElementById('stat-total');
                 const viewsStat = document.getElementById('stat-views');
 
@@ -442,9 +461,11 @@
 
                 tableBody.innerHTML = "";
                 let totalViews = 0;
+                let dormList = [];
 
                 if (snapshot.empty) {
                     tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No dorms found.</td></tr>";
+                    if (hotTableBody) hotTableBody.innerHTML = "<tr><td colspan='2' style='text-align:center;'>ไม่มีข้อมูลการคลิกเข้าชม</td></tr>";
                     if (viewsStat) viewsStat.innerText = "0";
                     return;
                 }
@@ -454,8 +475,14 @@
                     const name = escapeHTML(data.name || 'Untitled');
                     const zone = escapeHTML(data.zone || '-');
                     const priceDisplay = escapeHTML(data.priceDisplay || '-');
-                    
-                    if (data.views) totalViews += Number(data.views) || 0;
+
+                    // Check common view field variants and prevent NaN issues
+                    const rawViews = data.clickCount ?? data.views ?? data.viewCount ?? data.clicks ?? 0;
+                    const parsedViews = Number(rawViews);
+                    const clickCount = isNaN(parsedViews) ? 0 : parsedViews;
+
+                    totalViews += clickCount;
+                    dormList.push({ id: docSnap.id, name, clickCount });
 
                     tableBody.innerHTML += `
                         <tr>
@@ -473,6 +500,30 @@
                 });
 
                 if (viewsStat) viewsStat.innerText = totalViews.toLocaleString();
+
+                // Hot Listings logic
+                if (hotTableBody) {
+                    const rankedDorms = dormList
+                        .filter(dorm => dorm.clickCount > 0)
+                        .sort((a, b) => b.clickCount - a.clickCount);
+
+                    if (rankedDorms.length === 0) {
+                        hotTableBody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999; padding:15px;'>ยังไม่มีข้อมูลการคลิกเข้าชม</td></tr>";
+                    } else {
+                        hotTableBody.innerHTML = "";
+                        rankedDorms.forEach((dorm) => {
+                            hotTableBody.innerHTML += `
+                                <tr>
+                                    <td style="font-weight:500;">
+                                        <a href="details.html?id=${dorm.id}" target="_blank" class="dorm-link">
+                                            ${dorm.name}
+                                        </a>
+                                    </td>
+                                    <td><span style="color: #e53e3e; font-weight: bold;">🔥 ${dorm.clickCount.toLocaleString()}</span> ครั้ง</td>
+                                </tr>`;
+                        });
+                    }
+                }
             });
 
             // 3. User Reports

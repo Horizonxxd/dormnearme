@@ -764,6 +764,30 @@
             return { embedUrl, externalUrl };
         }
 
+        function getAmenityIcon(name) {
+            const key = name ? name.trim() : '';
+            const svgMap = {
+                // Clean Snowflake Icon for AC
+                'แอร์': `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/></svg>`,
+                
+                // Clean Shower Head Icon for Water Heater
+                'เครื่องทำน้ำอุ่น': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2a1 1 0 0 1 1 1v3.17A4 4 0 0 1 16 10v1a1 1 0 1 1-2 0v-1a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v1a1 1 0 1 1-2 0v-1a4 4 0 0 1 3-3.83V3a1 1 0 0 1 1-1zm-3 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm3 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm3 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-3 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>`,                
+                // Desk / Study Table Icons (Matches "โต๊ะเขียนหนังสือ", "โต๊ะทำงาน", "โต๊ะ")
+                'โต๊ะ': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1v8a1 1 0 0 1-2 0v-8H6v8a1 1 0 0 1-2 0v-8H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v2h16V7H4z"/></svg>`,
+                'โต๊ะเขียนหนังสือ': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1v8a1 1 0 0 1-2 0v-8H6v8a1 1 0 0 1-2 0v-8H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v2h16V7H4z"/></svg>`,
+                'โต๊ะทำงาน': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1v8a1 1 0 0 1-2 0v-8H6v8a1 1 0 0 1-2 0v-8H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v2h16V7H4z"/></svg>`,
+
+                // Remaining Amenities
+                'ไมโครเวฟ': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm0 2v10h10V7H4zm12 0v10h4V7h-4zm2 2h1v1h-1V9zm0 3h1v1h-1v-1z"/></svg>`,
+                'พัดลม': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V19h2a1 1 0 1 1 0 2H6a1 1 0 1 1 0-2h2v-4.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7zm0 2a5 5 0 0 0-5 5c0 2.22 1.45 4.1 3.5 4.72V19h3v-5.28C15.55 13.1 17 11.22 17 9a5 5 0 0 0-5-5zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>`,
+                'ตู้เย็น': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v6h10V4H7zm0 8v8h10v-8H7zm2-6h1v3H9V6zm0 8h1v4H9v-4z"/></svg>`,
+                'ทีวี': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M21 6H3a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h7v2H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-2v-2h7a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm0 11H3V8h18v9z"/></svg>`,
+                'ตู้เสื้อผ้า': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 2v14h6V5H5zm8 0v14h6V5h-6zm-4 6h1v2H9v-2zm5 0h1v2h-1v-2z"/></svg>`,
+                'ตู้กับข้าว': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 2v5h12V5H6zm0 7v7h12v-7H6zm2-5h3v1H8V7zm0 7h3v1H8v-1z"/></svg>`
+            };
+            return svgMap[key] || '•';
+        }
+
         async function loadDormData() {
             if (!dormId) {
                 document.getElementById('details-content').innerHTML = "<h2 style='text-align:center;'>ไม่พบรหัสหอพัก</h2>";
@@ -821,7 +845,7 @@
                                 <div class="side-img-box"><img src="${images[3] || images[0]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="3"></div>
                                 <div class="side-img-box"><img src="${images[0]}" onerror="this.src='${PLACEHOLDER_SIDE}'" class="side-img" data-idx="0"></div>
                             </div>
-                            <button class="btn-gallery-all" id="btn-open-lightbox">📷 แสดงรูปภาพทั้งหมด (${images.length})</button>
+                            <button class="btn-gallery-all" id="btn-open-lightbox">📷 แสดงรูปภาพทั้งหมด</button>
                         </div>
 
                         <!-- Content & Sticky Floating Sidebar Grid -->
@@ -834,23 +858,22 @@
                                     <div class="amenities-cards-grid">
                                         ${(data.amenities && data.amenities.length > 0) ? data.amenities.map(a => `
                                             <div class="amenity-card">
-                                                <div class="amenity-icon">✦</div>
+                                                <div class="amenity-icon">${getAmenityIcon(a)}</div>
                                                 <div class="amenity-info">
                                                     <span class="amenity-name">${a}</span>
-                                                    <span class="amenity-desc">พร้อมใช้งาน</span>
                                                 </div>
                                             </div>
                                         `).join('') : `
                                             <div class="amenity-card">
-                                                <div class="amenity-icon">📶</div>
+                                                <div class="amenity-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3C7.03 3 2.62 5.02 0 8.25l2.45 2.45C4.54 8.01 8.05 6.5 12 6.5s7.46 1.51 9.55 4.2L24 8.25C21.38 5.02 16.97 3 12 3zm0 6c-3.31 0-6.24 1.34-8.36 3.5l2.45 2.45C7.68 13.41 9.72 12.5 12 12.5s4.32.91 5.91 2.45l2.45-2.45C18.24 10.34 15.31 9 12 9zm0 6c-1.66 0-3.13.67-4.2 1.75l4.2 4.2 4.2-4.2C15.13 15.67 13.66 15 12 15z"/></svg></div>
                                                 <div class="amenity-info"><span class="amenity-name">Wi-Fi</span><span class="amenity-desc">อินเทอร์เน็ตความเร็วสูง</span></div>
                                             </div>
                                             <div class="amenity-card">
-                                                <div class="amenity-icon">❄️</div>
+                                                <div class="amenity-icon">${getAmenityIcon('แอร์')}</div>
                                                 <div class="amenity-info"><span class="amenity-name">เครื่องปรับอากาศ</span><span class="amenity-desc">ประหยัดไฟ</span></div>
                                             </div>
                                             <div class="amenity-card">
-                                                <div class="amenity-icon">🔒</div>
+                                                <div class="amenity-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
                                                 <div class="amenity-info"><span class="amenity-name">ระบบรักษาความปลอดภัย</span><span class="amenity-desc">CCTV + Keycard</span></div>
                                             </div>
                                         `}

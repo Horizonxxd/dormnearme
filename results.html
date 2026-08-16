@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <!-- CRITICAL: Allows mobile browsers to scale fonts and elements correctly -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results - Dorm Near Me!</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -21,7 +20,6 @@
             padding: 0;
         }
 
-        /* 1. Top Announcement Bar */
         .top-banner {
             background-color: var(--nav-purple);
             color: white;
@@ -30,7 +28,6 @@
             font-size: 14px;
         }
 
-        /* 2. Navigation Bar */
         .navbar {
             background: white;
             display: flex;
@@ -65,7 +62,6 @@
             font-weight: bold;
         }
 
-        /* Auth Section Styling */
         #auth-section {
             display: flex;
             align-items: center;
@@ -97,7 +93,6 @@
             display: none !important;
         }
 
-        /* 3. Centered Header Section */
         .header-main {
             text-align: center;
             margin-top: 20px;
@@ -111,7 +106,6 @@
             font-weight: 600;
         }
 
-        /* Centered Sort Control Bar */
         .sort-bar-container {
             display: flex;
             justify-content: center;
@@ -137,7 +131,6 @@
             outline: none;
         }
 
-        /* 4. Results Layout */
         .main-layout {
             display: flex;
             max-width: 1300px;
@@ -147,7 +140,6 @@
             box-sizing: border-box;
         }
 
-        /* Results List (Left) */
         .results-container {
             flex: 2;
         }
@@ -158,7 +150,6 @@
             gap: 15px;
         }
 
-        /* Sidebar Filters (Right) */
         .sidebar-filters {
             flex: 0.8;
             background: white;
@@ -171,7 +162,6 @@
             box-sizing: border-box;
         }
 
-        /* Card Styling */
         .dorm-card {
             background: white;
             border-radius: 15px;
@@ -242,7 +232,7 @@
             border: 1px solid #ddd;
             font-family: 'Kanit';
             box-sizing: border-box;
-            font-size: 16px; /* Prevents Safari zoom on focus */
+            font-size: 16px;
         }
 
         select:focus,
@@ -256,12 +246,10 @@
             accent-color: var(--purple);
         }
 
-        /* Checkbox styling */
         input[type="checkbox"] {
             accent-color: var(--purple);
         }
 
-        /* Sub-slider panel container */
         .slider-panel {
             margin-top: 5px;
             margin-bottom: 10px;
@@ -269,9 +257,6 @@
             border-left: 2px solid var(--purple);
         }
 
-        /* ==========================================
-           RESPONSIVE RULES FOR PHONES & TABLETS
-           ========================================== */
         @media (max-width: 900px) {
             .navbar {
                 flex-direction: column;
@@ -299,7 +284,7 @@
             }
 
             .main-layout {
-                flex-direction: column-reverse; /* Sidebar filters move above results on mobile */
+                flex-direction: column-reverse;
                 padding: 15px;
             }
 
@@ -426,8 +411,8 @@
                             <input type="checkbox" id="check711" class="poi-check"> 7-11
                         </label>
                         <div id="panel711" class="slider-panel hidden">
-                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="val711" style="color:var(--purple); font-weight:bold;">1000</span> ม.</span>
-                            <input type="range" id="range711" min="100" max="2000" step="100" value="1000">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="val711" style="color:var(--purple); font-weight:bold;">250</span> ม.</span>
+                            <input type="range" id="range711" min="50" max="500" step="10" value="250">
                         </div>
                     </div>
 
@@ -436,8 +421,8 @@
                             <input type="checkbox" id="checkMarket" class="poi-check"> ตลาด
                         </label>
                         <div id="panelMarket" class="slider-panel hidden">
-                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valMarket" style="color:var(--purple); font-weight:bold;">1000</span> ม.</span>
-                            <input type="range" id="rangeMarket" min="100" max="2000" step="100" value="1000">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valMarket" style="color:var(--purple); font-weight:bold;">250</span> ม.</span>
+                            <input type="range" id="rangeMarket" min="50" max="500" step="10" value="250">
                         </div>
                     </div>
 
@@ -446,8 +431,8 @@
                             <input type="checkbox" id="checkPharma" class="poi-check"> ร้านขายยา
                         </label>
                         <div id="panelPharma" class="slider-panel hidden">
-                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valPharma" style="color:var(--purple); font-weight:bold;">1000</span> ม.</span>
-                            <input type="range" id="rangePharma" min="100" max="2000" step="100" value="1000">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valPharma" style="color:var(--purple); font-weight:bold;">250</span> ม.</span>
+                            <input type="range" id="rangePharma" min="50" max="500" step="10" value="250">
                         </div>
                     </div>
 
@@ -456,8 +441,8 @@
                             <input type="checkbox" id="checkLaundry" class="poi-check"> ร้านซักอบผ้า
                         </label>
                         <div id="panelLaundry" class="slider-panel hidden">
-                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valLaundry" style="color:var(--purple); font-weight:bold;">1000</span> ม.</span>
-                            <input type="range" id="rangeLaundry" min="100" max="2000" step="100" value="1000">
+                            <span style="font-size:12px; color:#555;">ระยะทางไม่เกิน: <span id="valLaundry" style="color:var(--purple); font-weight:bold;">250</span> ม.</span>
+                            <input type="range" id="rangeLaundry" min="50" max="500" step="10" value="250">
                         </div>
                     </div>
                 </div>
@@ -467,9 +452,8 @@
 
     <script type="module">
         import { initAuth, db } from './auth.js';
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Initialize authentication setup
         initAuth();
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -482,7 +466,6 @@
         const distVal = document.getElementById('distVal');
         const sortResults = document.getElementById('sortResults');
 
-        // Target references for POI distance control elements
         const check711 = document.getElementById('check711');
         const panel711 = document.getElementById('panel711');
         const range711 = document.getElementById('range711');
@@ -503,13 +486,25 @@
         const rangeLaundry = document.getElementById('rangeLaundry');
         const valLaundry = document.getElementById('valLaundry');
 
-        // Set initial values from URL
         fName.value = urlParams.get('q') || "";
         fZone.value = urlParams.get('zone') || "all";
         fPrice.value = urlParams.get('price') || 10000;
         fDist.value = urlParams.get('dist') || 2000;
         priceVal.innerText = Number(fPrice.value).toLocaleString();
         distVal.innerText = fDist.value;
+
+        // Exposed globally for inline onclick attribute usage in module scope
+        window.trackDormClick = function(dormId) {
+            if (!dormId) return;
+            try {
+                const dormRef = doc(db, "listings", dormId);
+                updateDoc(dormRef, {
+                    clickCount: increment(1)
+                }).catch(err => console.error("Error updating click count:", err));
+            } catch (err) {
+                console.error("Error updating click count:", err);
+            }
+        };
 
         async function fetchDorms() {
             const listDiv = document.getElementById('results-list');
@@ -524,15 +519,13 @@
 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    data.id = docSnap.id; // Store ID for links
+                    data.id = docSnap.id;
                     const dormName = (data.name || "").toLowerCase();
 
-                    // --- PRIORITY 1: Name Search ---
                     if (searchKeyword !== "") {
                         if (!dormName.includes(searchKeyword)) return;
                     }
                     
-                    // --- PRIORITY 2: General Filters ---
                     if (fZone.value !== "all" && data.zone !== fZone.value) return;
                     if (data.priceMin > Number(fPrice.value)) return;
                     if (data.distance > Number(fDist.value)) return;
@@ -554,7 +547,6 @@
                         if (!hasAll) return;
                     }
 
-                    // --- Surrounding Places Evaluation Logic ---
                     const distances = data.distances || {};
                     
                     if (check711.checked) {
@@ -577,7 +569,6 @@
                     validDorms.push(data);
                 });
 
-                // --- Sort Handling Strategy ---
                 const sortType = sortResults.value;
                 if (sortType === "priceLowHigh") {
                     validDorms.sort((a, b) => (a.priceMin || 0) - (b.priceMin || 0));
@@ -587,13 +578,12 @@
                     validDorms.sort((a, b) => (a.distance || 0) - (b.distance || 0));
                 }
 
-                // Render sorted results with storage-mapped image paths
                 validDorms.forEach((data) => {
                     const bucketName = "dormnearme.firebasestorage.app";
                     const firstImageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${data.id}/image1.jpg`)}?alt=media`;
 
                     listDiv.innerHTML += `
-                <a href="details.html?id=${data.id}" class="dorm-card">
+                <a href="details.html?id=${data.id}" class="dorm-card" onclick="trackDormClick('${data.id}')">
                     <img src="${firstImageUrl}" onerror="this.src='https://via.placeholder.com/250x170'" class="dorm-img">
                     <div class="dorm-info">
                         <div>
@@ -616,7 +606,6 @@
             }
         }
 
-        // Setup visibility and state handling for POI checkboxes
         [
             { cb: check711, panel: panel711, slider: range711, label: val711 },
             { cb: checkMarket, panel: panelMarket, slider: rangeMarket, label: valMarket },
@@ -637,10 +626,8 @@
             });
         });
 
-        // Trigger sorting updates instantly
         sortResults.addEventListener('change', fetchDorms);
 
-        // Live filtering
         [fName, fZone, fPrice, fDist].forEach(el => {
             el.addEventListener('input', () => {
                 priceVal.innerText = Number(fPrice.value).toLocaleString();
