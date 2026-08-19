@@ -682,26 +682,34 @@
                 }
 
                 container.innerHTML = '';
+                const bucketName = "dormnearme.firebasestorage.app";
 
                 querySnapshot.forEach((docSnap) => {
                     const dorm = docSnap.data();
                     const docId = docSnap.id;
 
-                    const priceStr = dorm.priceMin 
-                        ? `${Number(dorm.priceMin).toLocaleString()} บาท/เดือน` 
-                        : 'ไม่ระบุราคา';
-                    
-                    const imgUrl = (dorm.images && dorm.images.length > 0) 
-                        ? dorm.images[0] 
-                        : 'https://via.placeholder.com/400x250?text=No+Image';
+                    // 1. Format Price
+                    let priceStr = 'ไม่ระบุราคา';
+                    if (dorm.priceDisplay) {
+                        priceStr = dorm.priceDisplay;
+                    } else if (dorm.priceMin) {
+                        priceStr = `${Number(dorm.priceMin).toLocaleString()} บาท/เดือน`;
+                    } else if (dorm.price) {
+                        priceStr = `${Number(dorm.price).toLocaleString()} บาท/เดือน`;
+                    }
 
+                    // 2. Build Image URL using Document ID path (matching results.html)
+                    const imgUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${docId}/image1.jpg`)}?alt=media`;
                     const clickCount = dorm.clickCount || 0;
 
                     const card = document.createElement('div');
                     card.className = 'hot-card';
                     card.innerHTML = `
                         <div class="hot-badge">HOT</div>
-                        <img src="${imgUrl}" alt="${dorm.name || 'Dorm'}" class="hot-img">
+                        <img src="${imgUrl}" 
+                            alt="${dorm.name || 'Dorm'}" 
+                            class="hot-img"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x250?text=No+Image';">
                         <div class="hot-body">
                             <h4 class="hot-dorm-title">${dorm.name || 'ไม่ระบุชื่อหอพัก'}</h4>
                             <div class="hot-dorm-price">${priceStr}</div>
@@ -726,7 +734,7 @@
                             console.error(e);
                         }
 
-                        window.location.href = `dorm-detail.html?id=${docId}`;
+                        window.location.href = `details.html?id=${docId}`;
                     });
 
                     container.appendChild(card);
