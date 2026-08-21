@@ -191,35 +191,6 @@
             font-size: 14px;
         }
 
-        .checkbox-label-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-
-        .distance-input-container {
-            margin-top: 2px;
-            margin-bottom: 5px;
-            padding-left: 22px;
-        }
-
-        .distance-field {
-            width: 110px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            font-family: 'Kanit', sans-serif;
-            font-size: 12px;
-            box-sizing: border-box;
-            color: #333;
-        }
-
-        .distance-field:focus {
-            outline: none;
-            border-color: var(--purple);
-        }
-
         .multi-select-container {
             background-color: var(--light-purple);
             padding: 18px;
@@ -392,49 +363,12 @@
                 <!-- Google Maps Link Field -->
                 <div class="form-group">
                     <label class="form-label">ลิงก์ Google Maps</label>
-                    <input type="url" id="dorm-map-url" class="form-input" placeholder="https://maps.app.goo.gl/...">
+                    <input type="url" id="dorm-map-url" class="form-input" placeholder="https://www.google.com/maps/place/...">
+                    <small style="color:#666; font-size:12px;">รองรับลิงก์พิกัดจาก Google Maps (เช่น https://maps.google.com/?q=19.028,99.924)</small>
                 </div>
             </div>
 
             <div class="form-column">
-                <div class="checkbox-block">
-                    <h4>สถานที่รอบ ๆ</h4>
-                    <div class="checkbox-grid" id="near-places">
-                        <div class="checkbox-item">
-                            <label class="checkbox-label-wrapper">
-                                <input type="checkbox" value="7-11" onchange="toggleDistanceInput(this, 'sevenEleven')"> 7-11
-                            </label>
-                            <div class="distance-input-container hidden" id="dist-sevenEleven">
-                                <input type="number" class="distance-field" placeholder="ระยะทาง (เมตร)">
-                            </div>
-                        </div>
-                        <div class="checkbox-item">
-                            <label class="checkbox-label-wrapper">
-                                <input type="checkbox" value="ร้านขายยา" onchange="toggleDistanceInput(this, 'pharma')"> ร้านขายยา
-                            </label>
-                            <div class="distance-input-container hidden" id="dist-pharma">
-                                <input type="number" class="distance-field" placeholder="ระยะทาง (เมตร)">
-                            </div>
-                        </div>
-                        <div class="checkbox-item">
-                            <label class="checkbox-label-wrapper">
-                                <input type="checkbox" value="ตลาด" onchange="toggleDistanceInput(this, 'market')"> ตลาด
-                            </label>
-                            <div class="distance-input-container hidden" id="dist-market">
-                                <input type="number" class="distance-field" placeholder="ระยะทาง (เมตร)">
-                            </div>
-                        </div>
-                        <div class="checkbox-item">
-                            <label class="checkbox-label-wrapper">
-                                <input type="checkbox" value="ร้านซักอบผ้า" onchange="toggleDistanceInput(this, 'laundry')"> ร้านซักอบผ้า
-                            </label>
-                            <div class="distance-input-container hidden" id="dist-laundry">
-                                <input type="number" class="distance-field" placeholder="ระยะทาง (เมตร)">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="checkbox-block">
                     <h4>สิ่งอำนวยความสะดวก</h4>
                     <div class="checkbox-grid" id="room-amenities">
@@ -497,23 +431,10 @@
         </div>
     </div>
 
-    <script>
-        function toggleDistanceInput(checkbox, targetId) {
-            const inputDiv = document.getElementById('dist-' + targetId);
-            if (checkbox.checked) {
-                inputDiv.classList.remove('hidden');
-            } else {
-                inputDiv.classList.add('hidden');
-                const field = inputDiv.querySelector('input');
-                if (field) field.value = '';
-            }
-        }
-    </script>
-
     <script type="module">
         import { app, initAuth } from './auth.js';
         import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, GeoPoint } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         // Initialize Firebase services
@@ -521,7 +442,6 @@
         const storage = getStorage(app);
         const auth = getAuth(app); 
 
-        // Start Auth UI listener logic
         initAuth();
 
         let selectedFiles = [];
@@ -573,7 +493,88 @@
                 : '';
         }
 
-        // Handle Form Saving
+        // -------------------------------------------------------------
+        // GEOLOCATION & DISTANCE CALCULATOR FUNCTIONS
+        // -------------------------------------------------------------
+
+        // 1. Extract Lat/Lng from Google Maps URLs
+        function extractLatLngFromUrl(mapUrl) {
+            if (!mapUrl) return null;
+            // Matches @lat,lng or q=lat,lng or ll=lat,lng
+            const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)|q=(-?\d+\.\d+),(-?\d+\.\d+)|ll=(-?\d+\.\d+),(-?\d+\.\d+)/;
+            const match = mapUrl.match(regex);
+            if (match) {
+                const lat = parseFloat(match[1] || match[3] || match[5]);
+                const lng = parseFloat(match[2] || match[4] || match[6]);
+                return { lat, lng };
+            }
+            return null;
+        }
+
+        // 2. Calculate distance between two coordinates in meters (Haversine formula)
+        function getDistanceInMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return Math.round(R * c);
+        }
+
+        // 3. Fetch POIs from 'nearbyconvi' collection and find closest distance per type
+        async function calculatePOIDistances(dormLat, dormLng) {
+            const poiMapping = {
+                '7-11': 'sevenEleven',
+                'laundry': 'laundry',
+                'market': 'market',
+                'pharma': 'pharma'
+            };
+
+            const calculatedDistances = {
+                sevenEleven: null,
+                laundry: null,
+                market: null,
+                pharma: null
+            };
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "nearbyconvi"));
+
+                querySnapshot.forEach((docSnap) => {
+                    const docId = docSnap.id; // Matches '7-11', 'laundry', 'market', or 'pharma'
+                    const distanceKey = poiMapping[docId];
+
+                    if (distanceKey) {
+                        const fields = docSnap.data();
+                        let minDistance = Infinity;
+
+                        Object.values(fields).forEach((value) => {
+                            // Extract GeoPoint coordinates
+                            if (value && typeof value.latitude === 'number' && typeof value.longitude === 'number') {
+                                const dist = getDistanceInMeters(dormLat, dormLng, value.latitude, value.longitude);
+                                if (dist < minDistance) {
+                                    minDistance = dist;
+                                }
+                            }
+                        });
+
+                        if (minDistance !== Infinity) {
+                            calculatedDistances[distanceKey] = minDistance;
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error("Error calculating POI distances:", err);
+            }
+
+            return calculatedDistances;
+        }
+
+        // -------------------------------------------------------------
+        // FORM SUBMISSION HANDLER
+        // -------------------------------------------------------------
         document.getElementById('save-btn').onclick = async function () {
             const saveBtn = document.getElementById('save-btn');
             const phone = phoneInput.value.trim();
@@ -589,6 +590,18 @@
                 alert("กรุณากรอกชื่อหอพัก"); 
                 return; 
             }
+            if (!mapUrl) {
+                alert("กรุณาระบุลิงก์ Google Maps");
+                return;
+            }
+
+            // Extract Lat/Lng
+            const coords = extractLatLngFromUrl(mapUrl);
+            if (!coords) {
+                alert("ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ได้ กรุณาใช้ลิงก์ Google Maps ที่มีพิกัดพินถูกต้อง");
+                return;
+            }
+
             if (phone.length !== 10) { 
                 alert("กรุณากรอกเบอร์โทรให้ครบ 10 หลัก"); 
                 return; 
@@ -599,14 +612,17 @@
             }
 
             saveBtn.disabled = true;
-            saveBtn.innerText = "กำลังอัปโหลดรูปภาพ...";
+            saveBtn.innerText = "กำลังคำนวณระยะทางและอัปโหลดรูปภาพ...";
 
             try {
-                // Point document to "pendingListings" collection using the dorm's name as the document ID
+                // 1. Calculate nearest distances to 7-11, laundry, market, pharma
+                const calculatedDistances = await calculatePOIDistances(coords.lat, coords.lng);
+
+                // 2. Setup document ID
                 const newDormDoc = doc(db, "pendingListings", dormName);
                 const dormId = newDormDoc.id;
 
-                // Batch upload images to Firebase Storage
+                // 3. Batch upload images to Firebase Storage
                 const imageUrls = [];
                 let imgCounter = 1;
                 for (const file of selectedFiles) {
@@ -622,32 +638,23 @@
 
                 saveBtn.innerText = "กำลังบันทึกข้อมูล...";
 
-                // Collect check values
-                const nearPlaces = Array.from(document.querySelectorAll('#near-places input[type="checkbox"]:checked'))
-                                       .map(cb => cb.value);
                 const roomAmenities = Array.from(document.querySelectorAll('#room-amenities input:checked'))
                                          .map(cb => cb.value);
 
-                const distances = {
-                    sevenEleven: Number(document.querySelector('#dist-sevenEleven input').value) || 0,
-                    pharma: Number(document.querySelector('#dist-pharma input').value) || 0,
-                    market: Number(document.querySelector('#dist-market input').value) || 0,
-                    laundry: Number(document.querySelector('#dist-laundry input').value) || 0
-                };
-
-                // Prepare document object
+                // 4. Prepare complete data object
                 const data = {
                     name: dormName,
                     details: document.getElementById('dorm-details').value.trim(),
                     mapUrl: mapUrl,
+                    location: new GeoPoint(coords.lat, coords.lng), // Store GeoPoint
                     status: "pending",
                     price: Number(document.getElementById('dorm-price').value) || 0,
+                    priceMin: Number(document.getElementById('dorm-price').value) || 0,
                     distance: Number(document.getElementById('uni-distance').value) || 0,
                     phone: phone,
                     rules: document.getElementById('dorm-rules').value.trim(),
                     images: imageUrls,
-                    nearPlaces: nearPlaces,
-                    distances: distances,
+                    distances: calculatedDistances, // Computed Map: { sevenEleven, laundry, market, pharma }
                     amenities: roomAmenities,
                     zone: document.querySelector('input[name="dzone"]:checked')?.value || "ไม่ระบุ",
                     type: document.querySelector('input[name="dtype"]:checked')?.value || "ไม่ระบุ",
@@ -655,7 +662,7 @@
                     timestamp: new Date()
                 };
 
-                // Save record directly into pendingListings
+                // 5. Save record into pendingListings
                 await setDoc(newDormDoc, data);
 
                 alert("ส่งข้อมูลเรียบร้อยแล้ว! ข้อมูลจะถูกตรวจสอบโดย Admin ก่อนแสดงบนเว็บไซต์ 🎉");
