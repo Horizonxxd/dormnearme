@@ -522,26 +522,41 @@
             return null;
         }
 
-        // Helper to parse nearbyconvi field values into {lat, lng}
+        // Robust helper to parse nearbyconvi field values into {lat, lng}
         function parseConviCoordinate(val) {
             if (!val) return null;
 
-            // Handle standard GeoPoint or Object format
+            // 1. Handle GeoPoint or Object with latitude/longitude or lat/lng
             if (typeof val.latitude === 'number' && typeof val.longitude === 'number') {
                 return { lat: val.latitude, lng: val.longitude };
             }
-
-            // Handle string format e.g. "[19.0297035° N, 99.9279776° E]"
-            if (typeof val === 'string') {
-                const matches = val.match(/([0-9]+\.[0-9]+)/g);
-                if (matches && matches.length >= 2) {
-                    let lat = parseFloat(matches[0]);
-                    let lng = parseFloat(matches[1]);
-                    if (val.includes('S')) lat = -lat;
-                    if (val.includes('W')) lng = -lng;
-                    return { lat, lng };
-                }
+            if (typeof val.lat === 'number' && typeof val.lng === 'number') {
+                return { lat: val.lat, lng: val.lng };
             }
+
+            // 2. Convert string/array/object to string for regex matching
+            const strVal = Array.isArray(val) ? val.join(' ') : String(val);
+
+            // 3. Extract latitude and longitude floating point numbers (e.g., "[19.0297035° N, 99.9279776° E]")
+            const matches = strVal.match(/(-?\d+\.\d+)/g);
+            if (matches && matches.length >= 2) {
+                let lat = parseFloat(matches[0]);
+                let lng = parseFloat(matches[1]);
+                if (strVal.includes('S')) lat = -Math.abs(lat);
+                if (strVal.includes('W')) lng = -Math.abs(lng);
+                return { lat, lng };
+            }
+
+            return null;
+        }
+
+        // Helper to match Firestore doc IDs strictly to category keys
+        function getCategoryKey(docId) {
+            const id = docId.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (id.includes('711') || id.includes('7eleven') || id.includes('seven')) return 'sevenEleven';
+            if (id.includes('laundry')) return 'laundry';
+            if (id.includes('market')) return 'market';
+            if (id.includes('pharm')) return 'pharma';
             return null;
         }
 
@@ -557,15 +572,8 @@
             return Math.round(R * c);
         }
 
-        // 3. Fetch POIs from 'nearbyconvi' collection and find closest distance per type
+        // 3. Fetch POIs from 'nearbyconvi' collection and find closest distance strictly per category document
         async function calculatePOIDistances(dormLat, dormLng) {
-            const poiMapping = {
-                '7-11': 'sevenEleven',
-                'laundry': 'laundry',
-                'market': 'market',
-                'pharma': 'pharma'
-            };
-
             const calculatedDistances = {
                 sevenEleven: null,
                 laundry: null,
@@ -578,12 +586,13 @@
 
                 querySnapshot.forEach((docSnap) => {
                     const docId = docSnap.id; // Matches '7-11', 'laundry', 'market', or 'pharma'
-                    const distanceKey = poiMapping[docId];
+                    const distanceKey = getCategoryKey(docId);
 
                     if (distanceKey) {
                         const fields = docSnap.data();
                         let minDistance = Infinity;
 
+                        // Only compare points within this specific category document
                         Object.values(fields).forEach((value) => {
                             const point = parseConviCoordinate(value);
                             if (point) {
@@ -600,7 +609,7 @@
                     }
                 });
             } catch (err) {
-                console.error("Error calculating POI distances:", err);
+                console.error("Error calculating POI distances from nearbyconvi:", err);
             }
 
             return calculatedDistances;
@@ -672,7 +681,7 @@
             saveBtn.innerText = "กำลังคำนวณระยะทางและอัปโหลดรูปภาพ...";
 
             try {
-                // 1. Calculate nearest distances to 7-11, laundry, market, pharma
+                // 1. Calculate nearest distances strictly per category (7-11, laundry, market, pharma)
                 const calculatedDistances = await calculatePOIDistances(coords.lat, coords.lng);
 
                 // 2. Setup document ID
