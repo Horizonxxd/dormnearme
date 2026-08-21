@@ -513,8 +513,8 @@
 
             // Matches @lat,lng or !3d...!4d... or q=lat,lng or query=lat,lng or ll=lat,lng
             const match = str.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-                          str.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
-                          str.match(/(?:query|q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+                        str.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
+                        str.match(/(?:query|q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
 
             if (match) {
                 return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
@@ -543,7 +543,7 @@
                 return results;
             }
 
-            // 2. String format e.g. "[19.0297035° N, 99.9279776° E]" or "19.029, 99.927"
+            // 2. String format e.g. "[19.03065° N, 99.92299° E]" or "19.029, 99.927"
             if (typeof val === 'string') {
                 const str = val.trim();
                 const matches = str.match(/(-?\d+\.\d+)/g);
@@ -570,6 +570,7 @@
             if (cleanStr.includes('laundry') || cleanStr.includes('ซัก')) return 'laundry';
             if (cleanStr.includes('market') || cleanStr.includes('ตลาด')) return 'market';
             if (cleanStr.includes('pharm') || cleanStr.includes('ยา')) return 'pharma';
+            if (cleanStr.includes('bus') || cleanStr.includes('รถเมล์') || cleanStr.includes('รถบัส') || cleanStr.includes('ป้าย')) return 'busStop';
             return null;
         }
 
@@ -579,8 +580,8 @@
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return Math.round(R * c);
         }
@@ -591,7 +592,8 @@
                 sevenEleven: null,
                 laundry: null,
                 market: null,
-                pharma: null
+                pharma: null,
+                busStop: null
             };
 
             try {
@@ -601,7 +603,7 @@
                     const docId = docSnap.id;
                     const docData = docSnap.data();
 
-                    // Check if Document ID maps directly to a category
+                    // Check if Document ID maps directly to a category (e.g. "Bus Stop")
                     const docCategory = getCategoryKey(docId);
 
                     if (docCategory) {
@@ -619,7 +621,7 @@
                             calculatedDistances[docCategory] = minDistance;
                         }
                     } else {
-                        // Check if individual fields inside document map to specific categories
+                        // Check individual fields inside document (e.g. field "bus_stop")
                         Object.entries(docData).forEach(([fieldKey, fieldValue]) => {
                             let fieldCategory = getCategoryKey(fieldKey);
                             if (!fieldCategory && fieldValue && typeof fieldValue === 'object') {
@@ -718,7 +720,7 @@
             saveBtn.innerText = "กำลังคำนวณระยะทางและอัปโหลดรูปภาพ...";
 
             try {
-                // 1. Calculate nearest distances strictly per category (7-11, laundry, market, pharma)
+                // 1. Calculate nearest distances (7-11, laundry, market, pharma, busStop)
                 const calculatedDistances = await calculatePOIDistances(coords.lat, coords.lng);
 
                 // 2. Setup document ID
@@ -742,22 +744,22 @@
                 saveBtn.innerText = "กำลังบันทึกข้อมูล...";
 
                 const roomAmenities = Array.from(document.querySelectorAll('#room-amenities input:checked'))
-                                         .map(cb => cb.value);
+                                        .map(cb => cb.value);
 
                 // 4. Prepare complete data object
                 const data = {
                     name: dormName,
                     details: document.getElementById('dorm-details').value.trim(),
                     mapUrl: mapUrl,
-                    location: new GeoPoint(coords.lat, coords.lng), // Store GeoPoint
+                    location: new GeoPoint(coords.lat, coords.lng),
                     status: "pending",
                     price: Number(document.getElementById('dorm-price').value) || 0,
                     priceMin: Number(document.getElementById('dorm-price').value) || 0,
-                    distance: Number(document.getElementById('uni-distance').value) || 0,
+                    distance: calculatedDistances.busStop ?? 0, // Auto-computed distance to bus stop in meters
                     phone: phone,
                     rules: document.getElementById('dorm-rules').value.trim(),
                     images: imageUrls,
-                    distances: calculatedDistances, // Computed Map: { sevenEleven, laundry, market, pharma }
+                    distances: calculatedDistances, // Computed Map
                     amenities: roomAmenities,
                     zone: document.querySelector('input[name="dzone"]:checked')?.value || "ไม่ระบุ",
                     type: document.querySelector('input[name="dtype"]:checked')?.value || "ไม่ระบุ",
