@@ -522,41 +522,54 @@
             return null;
         }
 
-        // Robust helper to parse nearbyconvi field values into {lat, lng}
-        function parseConviCoordinate(val) {
-            if (!val) return null;
+        // Deep/Recursive coordinate extractor that parses GeoPoints, objects, strings, arrays, etc.
+        function extractCoordinatesFromValue(val, results = []) {
+            if (val === null || val === undefined) return results;
 
-            // 1. Handle GeoPoint or Object with latitude/longitude or lat/lng
-            if (typeof val.latitude === 'number' && typeof val.longitude === 'number') {
-                return { lat: val.latitude, lng: val.longitude };
-            }
-            if (typeof val.lat === 'number' && typeof val.lng === 'number') {
-                return { lat: val.lat, lng: val.lng };
-            }
+            // 1. Objects and Arrays
+            if (typeof val === 'object') {
+                const lat = val.latitude ?? val.lat ?? val.Lat ?? val._lat;
+                const lng = val.longitude ?? val.lng ?? val.Lng ?? val.lon ?? val._long;
+                
+                if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+                    results.push({ lat, lng });
+                    return results;
+                }
 
-            // 2. Convert string/array/object to string for regex matching
-            const strVal = Array.isArray(val) ? val.join(' ') : String(val);
-
-            // 3. Extract latitude and longitude floating point numbers (e.g., "[19.0297035° N, 99.9279776° E]")
-            const matches = strVal.match(/(-?\d+\.\d+)/g);
-            if (matches && matches.length >= 2) {
-                let lat = parseFloat(matches[0]);
-                let lng = parseFloat(matches[1]);
-                if (strVal.includes('S')) lat = -Math.abs(lat);
-                if (strVal.includes('W')) lng = -Math.abs(lng);
-                return { lat, lng };
+                // Recursively traverse object keys / array items
+                for (const key of Object.keys(val)) {
+                    extractCoordinatesFromValue(val[key], results);
+                }
+                return results;
             }
 
-            return null;
+            // 2. String format e.g. "[19.0297035° N, 99.9279776° E]" or "19.029, 99.927"
+            if (typeof val === 'string') {
+                const str = val.trim();
+                const matches = str.match(/(-?\d+\.\d+)/g);
+                if (matches && matches.length >= 2) {
+                    let lat = parseFloat(matches[0]);
+                    let lng = parseFloat(matches[1]);
+                    if (str.includes('S')) lat = -Math.abs(lat);
+                    if (str.includes('W')) lng = -Math.abs(lng);
+                    
+                    if (!isNaN(lat) && !isNaN(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+                        results.push({ lat, lng });
+                    }
+                }
+            }
+
+            return results;
         }
 
-        // Helper to match Firestore doc IDs strictly to category keys
-        function getCategoryKey(docId) {
-            const id = docId.toLowerCase().replace(/[^a-z0-9]/g, '');
-            if (id.includes('711') || id.includes('7eleven') || id.includes('seven')) return 'sevenEleven';
-            if (id.includes('laundry')) return 'laundry';
-            if (id.includes('market')) return 'market';
-            if (id.includes('pharm')) return 'pharma';
+        // Categorize document ID or field key to appropriate category
+        function getCategoryKey(keyStr) {
+            if (!keyStr) return null;
+            const cleanStr = String(keyStr).toLowerCase().replace(/[^a-z0-9ก-๙]/g, '');
+            if (cleanStr.includes('711') || cleanStr.includes('seven') || cleanStr.includes('เซเว่น') || cleanStr.includes('convi')) return 'sevenEleven';
+            if (cleanStr.includes('laundry') || cleanStr.includes('ซัก')) return 'laundry';
+            if (cleanStr.includes('market') || cleanStr.includes('ตลาด')) return 'market';
+            if (cleanStr.includes('pharm') || cleanStr.includes('ยา')) return 'pharma';
             return null;
         }
 
@@ -572,7 +585,7 @@
             return Math.round(R * c);
         }
 
-        // 3. Fetch POIs from 'nearbyconvi' collection and find closest distance strictly per category document
+        // 3. Fetch POIs from 'nearbyconvi' collection and find closest distance strictly per category
         async function calculatePOIDistances(dormLat, dormLng) {
             const calculatedDistances = {
                 sevenEleven: null,
@@ -585,27 +598,51 @@
                 const querySnapshot = await getDocs(collection(db, "nearbyconvi"));
 
                 querySnapshot.forEach((docSnap) => {
-                    const docId = docSnap.id; // Matches '7-11', 'laundry', 'market', or 'pharma'
-                    const distanceKey = getCategoryKey(docId);
+                    const docId = docSnap.id;
+                    const docData = docSnap.data();
 
-                    if (distanceKey) {
-                        const fields = docSnap.data();
-                        let minDistance = Infinity;
+                    // Check if Document ID maps directly to a category
+                    const docCategory = getCategoryKey(docId);
 
-                        // Only compare points within this specific category document
-                        Object.values(fields).forEach((value) => {
-                            const point = parseConviCoordinate(value);
-                            if (point) {
-                                const dist = getDistanceInMeters(dormLat, dormLng, point.lat, point.lng);
-                                if (dist < minDistance) {
-                                    minDistance = dist;
-                                }
+                    if (docCategory) {
+                        const points = extractCoordinatesFromValue(docData);
+                        let minDistance = calculatedDistances[docCategory] !== null ? calculatedDistances[docCategory] : Infinity;
+
+                        points.forEach((point) => {
+                            const dist = getDistanceInMeters(dormLat, dormLng, point.lat, point.lng);
+                            if (dist < minDistance) {
+                                minDistance = dist;
                             }
                         });
 
                         if (minDistance !== Infinity) {
-                            calculatedDistances[distanceKey] = minDistance;
+                            calculatedDistances[docCategory] = minDistance;
                         }
+                    } else {
+                        // Check if individual fields inside document map to specific categories
+                        Object.entries(docData).forEach(([fieldKey, fieldValue]) => {
+                            let fieldCategory = getCategoryKey(fieldKey);
+                            if (!fieldCategory && fieldValue && typeof fieldValue === 'object') {
+                                if (fieldValue.type) fieldCategory = getCategoryKey(String(fieldValue.type));
+                                if (!fieldCategory && fieldValue.category) fieldCategory = getCategoryKey(String(fieldValue.category));
+                            }
+
+                            if (fieldCategory) {
+                                const points = extractCoordinatesFromValue(fieldValue);
+                                let minDistance = calculatedDistances[fieldCategory] !== null ? calculatedDistances[fieldCategory] : Infinity;
+
+                                points.forEach((point) => {
+                                    const dist = getDistanceInMeters(dormLat, dormLng, point.lat, point.lng);
+                                    if (dist < minDistance) {
+                                        minDistance = dist;
+                                    }
+                                });
+
+                                if (minDistance !== Infinity) {
+                                    calculatedDistances[fieldCategory] = minDistance;
+                                }
+                            }
+                        });
                     }
                 });
             } catch (err) {
