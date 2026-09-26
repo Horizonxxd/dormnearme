@@ -495,27 +495,47 @@
         // GEOLOCATION & DISTANCE CALCULATOR FUNCTIONS
         // -------------------------------------------------------------
 
-        // 1. Extract Lat/Lng from Google Maps URLs or direct Lat,Lng text
-        function extractLatLngFromUrl(mapUrl) {
-            if (!mapUrl) return null;
-            const str = mapUrl.trim();
+        // 1. Extract Lat/Lng from Google Maps URLs or direct Lat,Lng text (Pin location prioritized over camera viewport)
+function extractLatLngFromUrl(mapUrl) {
+    if (!mapUrl) return null;
+    const str = mapUrl.trim();
 
-            // Direct Lat, Lng format (e.g. "19.028, 99.924")
-            const directCoords = str.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
-            if (directCoords) {
-                return { lat: parseFloat(directCoords[1]), lng: parseFloat(directCoords[2]) };
-            }
+    // Direct Lat, Lng format (e.g. "19.028, 99.924")
+    const directCoords = str.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
+    if (directCoords) {
+        return { lat: parseFloat(directCoords[1]), lng: parseFloat(directCoords[2]) };
+    }
 
-            // Matches @lat,lng or !3d...!4d... or q=lat,lng or query=lat,lng or ll=lat,lng
-            const match = str.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-                        str.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
-                        str.match(/(?:query|q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    // Priority 1: Exact Marker / Pin coordinates in Protobuf data (!3dLAT!4dLNG)
+    const pinMatch = str.match(/!3d(-?\d+\.\d+).*?!4d(-?\d+\.\d+)/) ||
+                     str.match(/!4d(-?\d+\.\d+).*?!3d(-?\d+\.\d+)/);
+    if (pinMatch) {
+        const isReversed = str.indexOf('!4d') < str.indexOf('!3d');
+        const lat = parseFloat(isReversed ? pinMatch[2] : pinMatch[1]);
+        const lng = parseFloat(isReversed ? pinMatch[1] : pinMatch[2]);
+        return { lat, lng };
+    }
 
-            if (match) {
-                return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
-            }
-            return null;
-        }
+    // Priority 2: Explicit query / destination / location parameters
+    const queryMatch = str.match(/(?:query|q|ll|destination)=(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)/);
+    if (queryMatch) {
+        return { lat: parseFloat(queryMatch[1]), lng: parseFloat(queryMatch[2]) };
+    }
+
+    // Priority 3: Path-based place/dir coordinates
+    const pathMatch = str.match(/(?:place|dir|search)\/(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)/);
+    if (pathMatch) {
+        return { lat: parseFloat(pathMatch[1]), lng: parseFloat(pathMatch[2]) };
+    }
+
+    // Priority 4: Map Viewport / Camera Center (@lat,lng) - LOWEST PRECEDENCE (Fallback)
+    const cameraMatch = str.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (cameraMatch) {
+        return { lat: parseFloat(cameraMatch[1]), lng: parseFloat(cameraMatch[2]) };
+    }
+
+    return null;
+}
 
         // Deep/Recursive coordinate extractor that parses GeoPoints, objects, strings, arrays, etc.
         function extractCoordinatesFromValue(val, results = []) {
@@ -541,7 +561,7 @@
             // 2. String format e.g. "[19.03065° N, 99.92299° E]" or "19.029, 99.927"
             if (typeof val === 'string') {
                 const str = val.trim();
-                const matches = str.match(/(-?\d+\.\d+)/g);
+                const matches = str.match(/(-?\d+(?:\.\d+)?)/g);
                 if (matches && matches.length >= 2) {
                     let lat = parseFloat(matches[0]);
                     let lng = parseFloat(matches[1]);
@@ -569,7 +589,7 @@
             return null;
         }
 
-        // 2. Calculate distance between two coordinates in meters (Haversine formula)
+        // 2. Calculate distance between two coordinates in meters (Haversine formula with safe rounding)
         function getDistanceInMeters(lat1, lon1, lat2, lon2) {
             const R = 6371000; // Earth radius in meters
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -577,7 +597,8 @@
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                     Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const safeA = Math.min(1, Math.max(0, a)); // Guard against NaN
+            const c = 2 * Math.atan2(Math.sqrt(safeA), Math.sqrt(1 - safeA));
             return Math.round(R * c);
         }
 
@@ -598,7 +619,6 @@
                     const docId = docSnap.id;
                     const docData = docSnap.data();
 
-                    // Check if Document ID maps directly to a category (e.g. "Bus Stop")
                     const docCategory = getCategoryKey(docId);
 
                     if (docCategory) {
@@ -616,7 +636,6 @@
                             calculatedDistances[docCategory] = minDistance;
                         }
                     } else {
-                        // Check individual fields inside document (e.g. field "bus_stop")
                         Object.entries(docData).forEach(([fieldKey, fieldValue]) => {
                             let fieldCategory = getCategoryKey(fieldKey);
                             if (!fieldCategory && fieldValue && typeof fieldValue === 'object') {
@@ -674,26 +693,22 @@
 
             saveBtn.disabled = true;
 
-            // Resolve short links via Firebase Cloud Function if needed
-            let targetUrl = mapUrl;
-            if (mapUrl.includes('goo.gl') || mapUrl.includes('maps.app')) {
+            // 1. Try extracting coordinates directly. If missing, resolve via Cloud Function for ANY URL.
+            let coords = extractLatLngFromUrl(mapUrl);
+
+            if (!coords && mapUrl.startsWith('http')) {
                 saveBtn.innerText = "กำลังแปลงลิงก์ Google Maps...";
                 try {
                     const result = await resolveMapUrlCall({ url: mapUrl });
-                    targetUrl = result.data.longUrl || mapUrl;
+                    const targetUrl = result.data.longUrl || mapUrl;
+                    coords = extractLatLngFromUrl(targetUrl);
                 } catch (err) {
                     console.error("Failed to resolve short URL:", err);
-                    alert("ไม่สามารถแปลงลิงก์ Google Maps ได้ กรุณาตรวจสอบลิงก์อีกครั้ง");
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = "บันทึกข้อมูล";
-                    return;
                 }
             }
 
-            // Extract Lat/Lng
-            const coords = extractLatLngFromUrl(targetUrl);
             if (!coords) {
-                alert("ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ได้ กรุณาใช้ลิงก์ Google Maps ที่มีพิกัดพินถูกต้อง");
+                alert("ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ได้ กรุณาตรวจสอบลิงก์อีกครั้ง");
                 saveBtn.disabled = false;
                 saveBtn.innerText = "บันทึกข้อมูล";
                 return;
@@ -715,14 +730,14 @@
             saveBtn.innerText = "กำลังคำนวณระยะทางและอัปโหลดรูปภาพ...";
 
             try {
-                // 1. Calculate nearest distances (7-11, laundry, market, pharma, busStop)
+                // 2. Calculate nearest distances (7-11, laundry, market, pharma, busStop)
                 const calculatedDistances = await calculatePOIDistances(coords.lat, coords.lng);
 
-                // 2. Setup document ID
+                // 3. Setup document ID
                 const newDormDoc = doc(db, "pendingListings", dormName);
                 const dormId = newDormDoc.id;
 
-                // 3. Batch upload images to Firebase Storage
+                // 4. Batch upload images to Firebase Storage
                 const imageUrls = [];
                 let imgCounter = 1;
                 for (const file of selectedFiles) {
@@ -741,7 +756,7 @@
                 const roomAmenities = Array.from(document.querySelectorAll('#room-amenities input:checked'))
                                         .map(cb => cb.value);
 
-                // 4. Prepare complete data object
+                // 5. Prepare complete data object
                 const data = {
                     name: dormName,
                     details: document.getElementById('dorm-details').value.trim(),
@@ -750,11 +765,11 @@
                     status: "pending",
                     price: Number(document.getElementById('dorm-price').value) || 0,
                     priceMin: Number(document.getElementById('dorm-price').value) || 0,
-                    distance: calculatedDistances.busStop ?? 0, // Auto-computed distance to bus stop in meters
+                    distance: calculatedDistances.busStop ?? 0,
                     phone: phone,
                     rules: document.getElementById('dorm-rules').value.trim(),
                     images: imageUrls,
-                    distances: calculatedDistances, // Computed Map
+                    distances: calculatedDistances,
                     amenities: roomAmenities,
                     zone: document.querySelector('input[name="dzone"]:checked')?.value || "ไม่ระบุ",
                     type: document.querySelector('input[name="dtype"]:checked')?.value || "ไม่ระบุ",
@@ -762,7 +777,7 @@
                     timestamp: new Date()
                 };
 
-                // 5. Save record into pendingListings
+                // 6. Save record into pendingListings
                 await setDoc(newDormDoc, data);
 
                 alert("ส่งข้อมูลเรียบร้อยแล้ว! ข้อมูลจะถูกตรวจสอบโดย Admin ก่อนแสดงบนเว็บไซต์ 🎉");

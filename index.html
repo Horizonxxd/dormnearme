@@ -256,7 +256,7 @@
             border-radius: 6px;
         }
 
-        /* 🔥 HOT LISTINGS SECTION STYLES */
+        /* 🔥 HOT & RECOMMENDED LISTINGS SECTION STYLES */
         .hot-section {
             max-width: 1100px;
             margin: 0 auto 40px auto;
@@ -313,6 +313,10 @@
             border-radius: 20px;
             z-index: 2;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hot-badge.rec-badge {
+            background: var(--purple);
         }
 
         .hot-img {
@@ -556,6 +560,19 @@
         </div>
     </div>
 
+    <!-- ⭐ RECOMMENDED LISTINGS SECTION -->
+    <div class="hot-section">
+        <div class="hot-header">
+            <span style="font-size: 24px;">👍</span>
+            <h3 class="hot-title">หอพักแนะนำ (Recommended)</h3>
+        </div>
+        <div id="recommended-listings-grid" class="hot-grid">
+            <div style="grid-column: span 3; text-align: center; color: #94a3b8; padding: 20px;">
+                กำลังโหลดหอพักแนะนำ...
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         // 1. Module Imports
         import * as AuthModule from './auth.js';
@@ -659,6 +676,12 @@
 
                 window.location.href = `results.html?${params.toString()}`;
             });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    confirmBtn.click();
+                }
+            });
         }
 
         // 7. Load Hot Listings
@@ -688,7 +711,6 @@
                     const dorm = docSnap.data();
                     const docId = docSnap.id;
 
-                    // 1. Format Price
                     let priceStr = 'ไม่ระบุราคา';
                     if (dorm.priceDisplay) {
                         priceStr = dorm.priceDisplay;
@@ -698,7 +720,6 @@
                         priceStr = `${Number(dorm.price).toLocaleString()} บาท/เดือน`;
                     }
 
-                    // 2. Build Image URL using Document ID path (matching results.html)
                     const imgUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${docId}/image1.jpg`)}?alt=media`;
                     const clickCount = dorm.clickCount || 0;
 
@@ -745,7 +766,92 @@
             }
         }
 
+        // 8. Load Recommended Listings (Sorted by AHP Score from High to Low)
+        async function loadRecommendedListings() {
+            const container = document.getElementById('recommended-listings-grid');
+            if (!container) return;
+
+            if (!db) {
+                container.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #94a3b8;">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</div>`;
+                return;
+            }
+
+            try {
+                const listingsRef = collection(db, 'listings');
+                // Order documents by 'AHP Score' in descending order
+                const q = query(listingsRef, orderBy('AHP Score', 'desc'), limit(3));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    container.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #94a3b8;">ยังไม่มีข้อมูลหอพักแนะนำ</div>`;
+                    return;
+                }
+
+                container.innerHTML = '';
+                const bucketName = "dormnearme.firebasestorage.app";
+
+                querySnapshot.forEach((docSnap) => {
+                    const dorm = docSnap.data();
+                    const docId = docSnap.id;
+
+                    let priceStr = 'ไม่ระบุราคา';
+                    if (dorm.priceDisplay) {
+                        priceStr = dorm.priceDisplay;
+                    } else if (dorm.priceMin) {
+                        priceStr = `${Number(dorm.priceMin).toLocaleString()} บาท/เดือน`;
+                    } else if (dorm.price) {
+                        priceStr = `${Number(dorm.price).toLocaleString()} บาท/เดือน`;
+                    }
+
+                    const imgUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${docId}/image1.jpg`)}?alt=media`;
+                    const ahpScore = dorm['AHP Score'] !== undefined ? Number(dorm['AHP Score']).toFixed(2) : '-';
+
+                    const card = document.createElement('div');
+                    card.className = 'hot-card';
+                    card.innerHTML = `
+                        <div class="hot-badge rec-badge">RECOMMENDED</div>
+                        <img src="${imgUrl}" 
+                            alt="${dorm.name || 'Dorm'}" 
+                            class="hot-img"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x250?text=No+Image';">
+                        <div class="hot-body">
+                            <h4 class="hot-dorm-title">${dorm.name || 'ไม่ระบุชื่อหอพัก'}</h4>
+                            <div class="hot-dorm-price">${priceStr}</div>
+                            <div class="hot-dorm-meta">
+                                <span>📍 ${dorm.zone || 'ไม่ระบุโซน'}</span>
+                                <span style="color: var(--purple); font-weight: 600;">⭐ ${ahpScore} คะแนน</span>
+                            </div>
+                        </div>
+                    `;
+
+                    card.addEventListener('click', async () => {
+                        try {
+                            const dormRef = doc(db, 'listings', docId);
+                            updateDoc(dormRef, { clickCount: increment(1) }).catch(e => console.warn(e));
+
+                            addDoc(collection(db, 'click_events'), {
+                                listingId: docId,
+                                listingName: dorm.name || '',
+                                timestamp: serverTimestamp()
+                            }).catch(e => console.warn(e));
+                        } catch (e) {
+                            console.error(e);
+                        }
+
+                        window.location.href = `details.html?id=${docId}`;
+                    });
+
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Error loading recommended listings:", err);
+                container.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #ef4444;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+            }
+        }
+
+        // Initialize both sections
         loadHotListings();
+        loadRecommendedListings();
     </script>
 </body>
 

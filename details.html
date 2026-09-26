@@ -669,6 +669,49 @@
         const PLACEHOLDER_MAIN = 'https://via.placeholder.com/600x400';
         const PLACEHOLDER_SIDE = 'https://via.placeholder.com/300x200';
 
+        // Helper functions for phone formatting and masking
+        function formatPhoneNumber(phone) {
+            if (!phone) return 'โปรดติดต่อผ่าน Facebook';
+            const clean = String(phone).replace(/\D/g, '');
+            if (clean.length === 10) {
+                return `${clean.slice(0, 3)}-${clean.slice(3, 6)}-${clean.slice(6)}`;
+            }
+            return phone;
+        }
+
+        function maskPhoneNumber(phone) {
+            if (!phone) return 'โปรดติดต่อผ่าน Facebook';
+            const clean = String(phone).replace(/\D/g, '');
+            if (clean.length >= 9) {
+                return `${clean.slice(0, 3)}-***-****`;
+            }
+            return '***-***-****';
+        }
+
+        const EYE_CLOSED_SVG = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
+        const EYE_OPEN_SVG = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
+
+        function setupPhoneToggle(rawPhone) {
+            const toggleBtn = document.getElementById('btn-toggle-phone');
+            const phoneDisplay = document.getElementById('phone-display');
+            const eyeIcon = document.getElementById('eye-icon');
+
+            if (!toggleBtn || !phoneDisplay || !rawPhone) return;
+
+            let isRevealed = false;
+
+            toggleBtn.addEventListener('click', () => {
+                isRevealed = !isRevealed;
+                if (isRevealed) {
+                    phoneDisplay.textContent = formatPhoneNumber(rawPhone);
+                    eyeIcon.innerHTML = EYE_OPEN_SVG;
+                } else {
+                    phoneDisplay.textContent = maskPhoneNumber(rawPhone);
+                    eyeIcon.innerHTML = EYE_CLOSED_SVG;
+                }
+            });
+        }
+
         async function fetchImageURL(path) {
             try {
                 const imgRef = ref(storage, path);
@@ -767,17 +810,11 @@
         function getAmenityIcon(name) {
             const key = name ? name.trim() : '';
             const svgMap = {
-                // Clean Snowflake Icon for AC
                 'แอร์': `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/></svg>`,
-                
-                // Clean Shower Head Icon for Water Heater
                 'เครื่องทำน้ำอุ่น': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2a1 1 0 0 1 1 1v3.17A4 4 0 0 1 16 10v1a1 1 0 1 1-2 0v-1a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v1a1 1 0 1 1-2 0v-1a4 4 0 0 1 3-3.83V3a1 1 0 0 1 1-1zm-3 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm3 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm3 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-3 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>`,                
-                // Desk / Study Table Icons (Matches "โต๊ะเขียนหนังสือ", "โต๊ะทำงาน", "โต๊ะ")
                 'โต๊ะ': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1v8a1 1 0 0 1-2 0v-8H6v8a1 1 0 0 1-2 0v-8H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v2h16V7H4z"/></svg>`,
                 'โต๊ะเขียนหนังสือ': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1v8a1 1 0 0 1-2 0v-8H6v8a1 1 0 0 1-2 0v-8H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v2h16V7H4z"/></svg>`,
                 'โต๊ะทำงาน': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1v8a1 1 0 0 1-2 0v-8H6v8a1 1 0 0 1-2 0v-8H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v2h16V7H4z"/></svg>`,
-
-                // Remaining Amenities
                 'ไมโครเวฟ': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm0 2v10h10V7H4zm12 0v10h4V7h-4zm2 2h1v1h-1V9zm0 3h1v1h-1v-1z"/></svg>`,
                 'พัดลม': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V19h2a1 1 0 1 1 0 2H6a1 1 0 1 1 0-2h2v-4.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7zm0 2a5 5 0 0 0-5 5c0 2.22 1.45 4.1 3.5 4.72V19h3v-5.28C15.55 13.1 17 11.22 17 9a5 5 0 0 0-5-5zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>`,
                 'ตู้เย็น': `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v6h10V4H7zm0 8v8h10v-8H7zm2-6h1v3H9V6zm0 8h1v4H9v-4z"/></svg>`,
@@ -795,11 +832,9 @@
             }
 
             try {
-                // 1. Try fetching from 'listings' collection
                 let docRef = doc(db, "listings", dormId);
                 let docSnap = await getDoc(docRef);
 
-                // 2. Fallback to 'pendingListings' collection if not found in live listings
                 if (!docSnap.exists()) {
                     docRef = doc(db, "pendingListings", dormId);
                     docSnap = await getDoc(docRef);
@@ -816,6 +851,7 @@
                     const currentPrice = data.price ?? data.priceMin ?? 0;
                     const oldPrice = data.priceOld || data.oldPrice || null;
                     const hasDiscount = oldPrice && Number(oldPrice) > Number(currentPrice);
+                    const rawPhone = data.contact || data.phone;
 
                     document.title = `${data.name || 'รายละเอียดหอพัก'} - Dorm Near Me!`;
 
@@ -931,7 +967,19 @@
 
                                 <div class="booking-field-group">
                                     <span class="booking-field-label">เบอร์โทรศัพท์ติดต่อ</span>
-                                    <div class="booking-field-value">${data.contact || data.phone || 'โปรดติดต่อผ่าน Facebook'}</div>
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 2px;">
+                                        <div id="phone-display" class="booking-field-value">
+                                            ${maskPhoneNumber(rawPhone)}
+                                        </div>
+                                        ${rawPhone ? `
+                                        <button id="btn-toggle-phone" type="button" style="background: none; border: none; cursor: pointer; padding: 2px 6px; color: var(--purple); display: flex; align-items: center;" title="แสดง/ซ่อนเบอร์โทรศัพท์">
+                                            <svg id="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                        </button>
+                                        ` : ''}
+                                    </div>
                                 </div>
 
                                 <div class="booking-field-group">
@@ -939,7 +987,7 @@
                                     <div class="booking-field-value">${data.distance || '-'} เมตร</div>
                                 </div>
 
-                                <a href="tel:${data.contact || data.phone || ''}" class="btn-primary-action">
+                                <a href="tel:${rawPhone || ''}" class="btn-primary-action">
                                     📞 Contact Owner (ติดต่อเจ้าของ)
                                 </a>
 
@@ -959,6 +1007,7 @@
                     `;
 
                     setupLightboxEvents();
+                    setupPhoneToggle(rawPhone);
                 } else {
                     document.getElementById('details-content').innerHTML = "<h2 style='text-align:center;'>ไม่พบข้อมูลหอพักนี้</h2>";
                 }

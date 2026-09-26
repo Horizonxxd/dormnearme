@@ -487,11 +487,59 @@
         const valLaundry = document.getElementById('valLaundry');
 
         fName.value = urlParams.get('q') || "";
-        fZone.value = urlParams.get('zone') || "all";
-        fPrice.value = urlParams.get('price') || 10000;
-        fDist.value = urlParams.get('dist') || 2000;
-        priceVal.innerText = Number(fPrice.value).toLocaleString();
-        distVal.innerText = fDist.value;
+fZone.value = urlParams.get('zone') || "all";
+fPrice.value = urlParams.get('price') || 10000;
+fDist.value = urlParams.get('dist') || 2000;
+priceVal.innerText = Number(fPrice.value).toLocaleString();
+distVal.innerText = fDist.value;
+
+// 1. Read & check selected amenities from index.html
+const rawAmen = urlParams.get('amen');
+if (rawAmen) {
+    const amenList = rawAmen.split(',');
+    // Map index.html Thai values to results.html checkbox values
+    const thaiToVal = {
+        'แอร์': 'air',
+        'พัดลม': 'fan',
+        'ตู้เย็น': 'fridge',
+        'ไมโครเวฟ': 'microwave',
+        'เครื่องทำน้ำอุ่น': 'waterheater',
+        'โต๊ะ': 'desk',
+        'ตู้เสื้อผ้า': 'wardrobe',
+        'ทีวี': 'tv',
+        'ตู้กับข้าว': 'pantry'
+    };
+    amenList.forEach(thaiName => {
+        const valKey = thaiToVal[thaiName];
+        if (valKey) {
+            const cb = document.querySelector(`.amen-check[value="${valKey}"]`);
+            if (cb) cb.checked = true;
+        }
+    });
+}
+
+// 2. Read & check selected nearby locations & distance sliders from index.html
+const rawNear = urlParams.get('near');
+const nearList = rawNear ? rawNear.split(',') : [];
+
+const poiMap = [
+    { id: '711', cb: check711, panel: panel711, range: range711, val: val711 },
+    { id: 'pharmacy', cb: checkPharma, panel: panelPharma, range: rangePharma, val: valPharma },
+    { id: 'market', cb: checkMarket, panel: panelMarket, range: rangeMarket, val: valMarket },
+    { id: 'laundry', cb: checkLaundry, panel: panelLaundry, range: rangeLaundry, val: valLaundry }
+];
+
+poiMap.forEach(item => {
+    if (nearList.includes(item.id)) {
+        if (item.cb) item.cb.checked = true;
+        if (item.panel) item.panel.classList.remove('hidden');
+    }
+    const customDist = urlParams.get(`dist_${item.id}`);
+    if (customDist && item.range && item.val) {
+        item.range.value = customDist;
+        item.val.innerText = customDist;
+    }
+});
 
         // Exposed globally for inline onclick attribute usage in module scope
         window.trackDormClick = function(dormId) {
