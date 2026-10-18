@@ -547,6 +547,19 @@
         </div>
     </div>
 
+    <!-- ⭐ RECOMMENDED LISTINGS SECTION -->
+    <div class="hot-section">
+        <div class="hot-header">
+            <span style="font-size: 24px;">👍</span>
+            <h3 class="hot-title">หอพักแนะนำ (Recommended)</h3>
+        </div>
+        <div id="recommended-listings-grid" class="hot-grid">
+            <div style="grid-column: span 3; text-align: center; color: #94a3b8; padding: 20px;">
+                กำลังโหลดหอพักแนะนำ...
+            </div>
+        </div>
+    </div>
+
     <!-- 🔥 HOT LISTINGS SECTION -->
     <div class="hot-section">
         <div class="hot-header">
@@ -560,18 +573,6 @@
         </div>
     </div>
 
-    <!-- ⭐ RECOMMENDED LISTINGS SECTION -->
-    <div class="hot-section">
-        <div class="hot-header">
-            <span style="font-size: 24px;">👍</span>
-            <h3 class="hot-title">หอพักแนะนำ (Recommended)</h3>
-        </div>
-        <div id="recommended-listings-grid" class="hot-grid">
-            <div style="grid-column: span 3; text-align: center; color: #94a3b8; padding: 20px;">
-                กำลังโหลดหอพักแนะนำ...
-            </div>
-        </div>
-    </div>
 
     <script type="module">
         // 1. Module Imports
@@ -779,7 +780,7 @@
             try {
                 const listingsRef = collection(db, 'listings');
                 // Order documents by 'AHP Score' in descending order
-                const q = query(listingsRef, orderBy('AHP Score', 'desc'), limit(3));
+                const q = query(listingsRef, orderBy('MCDM Score', 'desc'), limit(3));
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
@@ -804,7 +805,7 @@
                     }
 
                     const imgUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(`dorms/${docId}/image1.jpg`)}?alt=media`;
-                    const ahpScore = dorm['AHP Score'] !== undefined ? Number(dorm['AHP Score']).toFixed(2) : '-';
+                    const ahpScore = dorm['MCDM Score'] !== undefined ? Number(dorm['MCDM Score']).toFixed(2) : '-';
 
                     const card = document.createElement('div');
                     card.className = 'hot-card';

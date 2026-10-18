@@ -852,6 +852,10 @@
                     const oldPrice = data.priceOld || data.oldPrice || null;
                     const hasDiscount = oldPrice && Number(oldPrice) > Number(currentPrice);
                     const rawPhone = data.contact || data.phone;
+                    const mcdmRaw = data["MCDM Score"] ?? data.mcdmScore ?? data.mcdm_score;
+                    const mcdmScore = (mcdmRaw === undefined || mcdmRaw === null || mcdmRaw === '')
+                        ? '-'
+                        : (isNaN(Number(mcdmRaw)) ? String(mcdmRaw) : Number(mcdmRaw).toLocaleString(undefined, { maximumFractionDigits: 4 }));
 
                     document.title = `${data.name || 'รายละเอียดหอพัก'} - Dorm Near Me!`;
 
@@ -990,6 +994,8 @@
                                 <a href="tel:${rawPhone || ''}" class="btn-primary-action">
                                     📞 Contact Owner (ติดต่อเจ้าของ)
                                 </a>
+
+                                <div class="mcdm-score-text" style="margin-top: 8px; text-align: center; font-size: 12px; color: var(--text-muted);">MCDM Score: <span style="font-weight: 600; color: #7c3aed;">${mcdmScore}</span></div>
 
                                 <div class="contact-person-info">
                                     <div class="contact-avatar-placeholder">🏠</div>
