@@ -402,7 +402,6 @@
         }
     </style>
 </head>
-
 <body>
 
     <div class="top-banner">
@@ -414,6 +413,7 @@
             <a href="index.html" class="nav-item active">ค้นหาหอพัก</a>
             <a href="add-info.html" class="nav-item">เพิ่มข้อมูล</a>
             <a href="map.html" class="nav-item">แผนที่</a>
+            <a href="dashboard.html" class="nav-item">สถิติ</a>
             <a href="contact.html" class="nav-item">ติดต่อเรา</a>
         </div>
 
@@ -602,6 +602,15 @@
             }
         }
 
+        // จัดรูปแบบข้อความราคา เช่น "2500-4000" -> "2,500 – 4,000 บาท/เดือน"
+        const fmtPrice = (t) => {
+            t = String(t).trim();
+            if (/บาท/.test(t)) return t;
+            const nums = t.match(/\d[\d,]*/g);
+            if (!nums) return t;
+            return nums.map(n => Number(n.replace(/,/g, '')).toLocaleString()).join(' – ') + ' บาท/เดือน';
+        };
+
         // 4. Price & Distance Sliders UI
         const priceInput = document.getElementById('priceInput');
         const priceTxt = document.getElementById('priceTxt');
@@ -714,7 +723,7 @@
 
                     let priceStr = 'ไม่ระบุราคา';
                     if (dorm.priceDisplay) {
-                        priceStr = dorm.priceDisplay;
+                        priceStr = fmtPrice(dorm.priceDisplay);
                     } else if (dorm.priceMin) {
                         priceStr = `${Number(dorm.priceMin).toLocaleString()} บาท/เดือน`;
                     } else if (dorm.price) {
@@ -797,7 +806,7 @@
 
                     let priceStr = 'ไม่ระบุราคา';
                     if (dorm.priceDisplay) {
-                        priceStr = dorm.priceDisplay;
+                        priceStr = fmtPrice(dorm.priceDisplay);
                     } else if (dorm.priceMin) {
                         priceStr = `${Number(dorm.priceMin).toLocaleString()} บาท/เดือน`;
                     } else if (dorm.price) {
@@ -855,5 +864,5 @@
         loadRecommendedListings();
     </script>
 </body>
-
+        <script type="module" src="visitor-tracker.js"></script>
 </html>

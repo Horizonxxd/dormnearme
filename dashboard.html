@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ข้อมูลสถิติหอพัก - Dorm Near Me</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--p:#7C3AED;--p2:#6366F1;--ink:#1e293b;--mute:#64748b;--line:#eceef5;
+--g:#15803d;--gb:#dcfce7;--y:#a16207;--yb:#fef9c3;--o:#c2410c;--ob:#ffedd5;--r:#b91c1c;--rb:#fee2e2;--b:#1d4ed8;--bb:#dbeafe;--t:#0f766e;--tb:#ccfbf1;--s:#475569;--sb:#f1f5f9}
+*{box-sizing:border-box}body{margin:0;font-family:Kanit,sans-serif;background:#f6f5fb;color:var(--ink);line-height:1.5}
+.top-banner{background:var(--p2);color:#fff;text-align:center;padding:8px;font-size:14px}
+nav{background:#fff;padding:0 24px;border-bottom:1px solid #eee;display:flex;flex-wrap:wrap}nav a{padding:14px 18px;color:#555;text-decoration:none}nav a.on{color:var(--p);font-weight:600;border-bottom:3px solid var(--p)}
+.wrap{max-width:1000px;margin:0 auto;padding:26px 18px 50px}
+h1{margin:0;font-size:26px}.live{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--g);margin-left:10px;font-weight:400}
+.live i{width:9px;height:9px;border-radius:50%;background:#16a34a;animation:b 1.3s infinite}@keyframes b{50%{opacity:.25}}
+.lead{color:var(--mute);margin:6px 0 22px}
+.sec{background:#fff;border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 2px 12px rgba(30,41,59,.05)}
+.sh{display:flex;gap:14px;align-items:flex-start}.num{flex:none;width:34px;height:34px;border-radius:10px;background:var(--p);color:#fff;display:grid;place-items:center;font-weight:600}
+.sh h2{margin:0;font-size:19px;font-weight:600}.use{margin:2px 0 0;color:var(--mute);font-size:14px}
+.insight{margin:16px 0;padding:12px 16px;border-radius:12px;background:#f5f3ff;border-left:4px solid var(--p);font-size:15px}
+.insight b{color:var(--p)}
+.rank{display:grid;grid-template-columns:30px 1fr auto;gap:4px 12px;align-items:center;padding:7px 0}
+.rank .no{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;background:var(--sb);color:var(--s)}
+.rank.r1 .no{background:#fde68a;color:#78350f}.rank.r2 .no,.rank.r3 .no{background:#e0e7ff;color:#3730a3}
+.rank a{color:var(--ink);text-decoration:none;font-weight:500}.rank a:hover{color:var(--p)}.rank .v{font-weight:600;color:var(--p);white-space:nowrap}
+.bar{grid-column:2/4;height:8px;background:#f1f3f9;border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;border-radius:6px;background:#a5b4fc}.r1 .bar i{background:#f59e0b}.r2 .bar i,.r3 .bar i{background:var(--p2)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.zc{border-radius:16px;padding:18px;border:2px solid transparent}
+.zc.A{background:#f5f3ff;border-color:#ddd6fe}.zc.B{background:var(--tb);border-color:#99f6e4}.zc.C{background:var(--sb);border-color:#e2e8f0}
+.zc .nm{font-weight:600;font-size:16px}.zc .pc{font-size:40px;font-weight:600;line-height:1.1;margin:6px 0}.zc.A .pc{color:var(--p)}.zc.B .pc{color:var(--t)}.zc small{color:var(--mute);font-size:13px;display:block}
+.zc .meter{height:8px;border-radius:6px;background:rgba(255,255,255,.7);margin:8px 0;overflow:hidden}.zc .meter i{display:block;height:100%}.zc.A .meter i{background:var(--p)}.zc.B .meter i{background:#14b8a6}.zc.C .meter i{background:#94a3b8}
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;margin:2px 0 14px}
+.chip{display:inline-block;border-radius:10px;padding:2px 10px;font-size:12px;margin:3px 4px 0 0;white-space:nowrap}
+.d1{background:var(--gb);color:var(--g)}.d2{background:var(--yb);color:var(--y)}.d3{background:var(--ob);color:var(--o)}.d0{background:var(--sb);color:#94a3b8}
+.pod{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:12px;align-items:end;margin:6px 0 12px}
+.pcard{border-radius:16px;padding:16px 12px;text-align:center;border:2px solid #eef0f6;background:#fff}.pcard .md{font-size:34px;line-height:1}.pcard .nm{font-weight:600;margin:6px 0 2px}
+.pcard .av{font-size:13px;color:var(--mute);margin-bottom:6px}.pcard.r1{background:#fffbeb;border-color:#fbbf24;padding:24px 12px;box-shadow:0 8px 20px rgba(251,191,36,.22)}.pcard.r1 .md{font-size:44px}
+.pcard.r2{background:#f8fafc;border-color:#cbd5e1;padding:20px 12px}.pcard.r3{background:#fff7ed;border-color:#fdba74}.pcard a,.row a{color:inherit;text-decoration:none}.pcard a:hover,.row a:hover{color:var(--p)}
+.row{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-top:8px}.row .no{width:30px;height:30px;border-radius:50%;background:var(--sb);display:grid;place-items:center;font-weight:600;flex:none}.row .in{flex:1}.row .rt{text-align:right;font-size:13px;color:var(--mute)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tile{border-radius:14px;padding:16px;text-align:center}.tile b{display:block;font-size:34px;line-height:1.2}.tile span{font-size:14px}
+.t-ok{background:var(--gb);color:var(--g)}.t-bad{background:var(--rb);color:var(--r)}.t-no{background:var(--sb);color:var(--s)}
+.cover{height:10px;border-radius:8px;overflow:hidden;display:flex;background:#f1f5f9;margin:14px 0 4px}.cover i{display:block;height:100%}.note{font-size:13px;color:var(--mute)}
+.lk{display:inline-block;background:var(--gb);color:var(--g);border-radius:10px;padding:4px 12px;margin:4px 6px 0 0;text-decoration:none;font-size:14px}.lk:hover{background:#bbf7d0}
+.empty{padding:14px 16px;border-radius:12px;background:var(--sb);color:var(--s);font-size:14px;margin-top:12px}
+.bks{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.bk{border-radius:16px;padding:16px;border:2px solid transparent;display:flex;flex-direction:column}
+.bk .lb{font-size:13px;font-weight:600}.bk .big{font-size:30px;font-weight:600;line-height:1.2;margin-top:2px}.bk .big small{font-size:13px;font-weight:400;opacity:.8}
+.bk .hot{font-size:11px;background:#fff;border-radius:8px;padding:1px 8px;margin-left:6px;font-weight:500}
+.bk .sh2{height:7px;border-radius:6px;background:rgba(255,255,255,.7);margin:8px 0;overflow:hidden}.bk .sh2 i{display:block;height:100%;background:currentColor;opacity:.75}
+.bk .it{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid rgba(0,0,0,.07);font-size:13px;color:var(--ink)}.bk .it a{color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.bk .it span{flex:none;opacity:.7}
+.bk details summary{cursor:pointer;font-size:13px;padding:6px 0;font-weight:500}.bk .more{max-height:180px;overflow:auto}
+.c1{background:var(--gb);color:var(--g);border-color:#bbf7d0}.c2{background:var(--bb);color:var(--b);border-color:#bfdbfe}.c3{background:var(--yb);color:var(--y);border-color:#fde68a}.c4{background:var(--rb);color:var(--r);border-color:#fecaca}
+.c1.best,.c2.best,.c3.best,.c4.best{box-shadow:0 6px 18px rgba(0,0,0,.1)}
+@media(max-width:860px){.bks{grid-template-columns:1fr 1fr}.two,.tiles{grid-template-columns:1fr}.pod{grid-template-columns:1fr}.pod .r1{order:-1}}
+@media(max-width:520px){.bks{grid-template-columns:1fr}}
+</style></head><body>
+<div class="top-banner">ข้อมูลรวบรวมจาก Facebook และ Google Maps โปรดตรวจสอบรายละเอียดกับผู้ให้บริการที่พักก่อนตัดสินใจ</div>
+<nav><a href="index.html">ค้นหาหอพัก</a><a href="add-info.html">เพิ่มข้อมูล</a><a href="map.html">แผนที่</a><a href="dashboard.html" class="on">สถิติ</a><a href="contact.html">ติดต่อเรา</a></nav>
+<div class="wrap">
+<h1>ภาพรวมข้อมูลหอพัก<span class="live"><i></i>ข้อมูลอัปเดตอัตโนมัติ</span></h1>
+<p class="lead">สรุปข้อมูลความสนใจต่อหอพัก ระยะทางจากสิ่งอำนวยความสะดวก และระดับราคา เพื่อประกอบการพิจารณาเลือกที่พัก</p>
+<div id="app"><div class="sec">กำลังโหลดข้อมูล...</div></div>
+</div>
+<script type="module">
+import { initAuth, db } from './auth.js';
+import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+initAuth();
+const RADIUS = 500, POI = { sevenEleven: '7-11', market: 'ตลาด', pharma: 'ร้านขายยา', laundry: 'ซักอบผ้า' };
+// พื้นที่ที่เคยเกิดน้ำท่วมใหญ่ (ระดับพื้นที่) ใส่ได้หลายจุด ตัวอย่างรูปแบบ:
+// { name: 'ชุมชนหน้า ม.พะเยา', lat: 00.0000, lng: 00.0000, radius: 500, source: 'Thai PBS 18 ก.ย. 2567', url: 'https://www.thaipbs.or.th/news/content/344361' }
+const FLOOD_AREAS = [
+  // จุดอ้างอิง "Mae Ka Luang" บน Google Maps (ห้วยแม่กาหลวง ใกล้ ม.พะเยา) รัศมีประมาณ ปรับ radius ให้ตรงกับพื้นที่จริงได้ หรือเพิ่มจุดต่อไปตามลำห้วย
+  { name: 'ริมห้วยแม่กาหลวง ใกล้ ม.พะเยา', lat: 19.0248889, lng: 99.9252339, radius: 500, source: 'Thai PBS 18 ก.ย. 2567', url: 'https://www.thaipbs.or.th/news/content/344361' }
+];
+const BK = [{ n: 'ประหยัด', r: 'ต่ำกว่า 2,500', lo: 1, hi: 2499, c: 'c1' }, { n: 'ระดับกลาง', r: '2,500 – 3,499', lo: 2500, hi: 3499, c: 'c2' },
+  { n: 'ระดับกลางถึงสูง', r: '3,500 – 4,999', lo: 3500, hi: 4999, c: 'c3' }, { n: 'ระดับสูง', r: '5,000 ขึ้นไป', lo: 5000, hi: 1e9, c: 'c4' }];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = n => Number(n).toLocaleString();
+const price = d => Number(d.priceMin || d.price || 0), clicks = d => Number(d.clickCount ?? d.views ?? 0) || 0;
+const link = d => `<a href="details.html?id=${d.id}">${esc(d.name)}</a>`;
+
+const sec = (n, h, use, insight, body) => `
+  <section class="sec">
+    <div class="sh">
+      <div>
+        <h2>${h}</h2>
+        <p class="use">${use}</p>
+      </div>
+    </div>
+    <div class="insight">${insight}</div>
+    ${body}
+  </section>
+`;
+
+onSnapshot(collection(db, 'listings'), snap => {
+  const L = snap.docs.map(s => ({ id: s.id, ...s.data() })), total = L.reduce((t, d) => t + clicks(d), 0);
+  const byClick = [...L].sort((a, b) => clicks(b) - clicks(a));
+  let html = '';
+
+// 1) หอที่คนเข้าชมมากที่สุด — Top 3 Podium
+const top = byClick.slice(0, 8);
+const medals = ['🥇', '🥈', '🥉'];
+const podium = [top[1], top[0], top[2]];
+html += sec(1, 'หอพักที่ได้รับการเข้าชมมากที่สุด',
+  'จัดอันดับตามเข้าชมรายละเอียดหอพัก',
+  top[0] ? `<b>${esc(top[0].name)}</b> มีเข้าชมดูรายละเอียดสูงสุด <b>${clicks(top[0])} ครั้ง</b>` : 'ยังไม่มีข้อมูลสำหรับแสดงผล',
+  `<div class="pod">${podium.map((d, i) => {
+    if (!d) return '<div></div>';
+    const rank = [2, 1, 3][i];
+    return `<div class="pcard r${rank}">
+      <div class="md">${medals[rank - 1]}</div>
+      <div class="nm">${link(d)}</div>
+      <div class="av">อันดับ ${rank}</div>
+      <div style="font-size:26px;font-weight:600;color:var(--p)">${clicks(d)} ครั้ง</div>
+    </div>`;
+  }).join('')}</div>
+  ${top.slice(3).map((d, i) => `
+    <div class="row">
+      <div class="no">${i + 4}</div>
+      <div class="in">${link(d)}</div>
+      <div class="rt">${clicks(d)} ครั้ง</div>
+    </div>
+  `).join('')}`
+);
+  // 2) ใกล้สถานที่รอบข้างครบ
+  const near = L.map(d => { const dist = d.distances || {}, hit = Object.keys(POI).filter(k => dist[k] != null && dist[k] <= RADIUS);
+    return { d, dist, hit, avg: hit.length ? hit.reduce((t, k) => t + dist[k], 0) / hit.length : Infinity }; })
+    .sort((a, b) => b.hit.length - a.hit.length || a.avg - b.avg).slice(0, 5);
+  const dc = m => m == null ? 'd0' : m <= 150 ? 'd1' : m <= 300 ? 'd2' : m <= 500 ? 'd3' : 'd0';
+  const chips = x => Object.entries(POI).map(([k, n]) => `<span class="chip ${dc(x.dist[k])}">${n} ${x.dist[k] != null ? fmt(x.dist[k]) + ' ม.' : '-'}</span>`).join('');
+  const sub = x => x.hit.length ? `เฉลี่ย ${Math.round(x.avg)} ม.`: 'ไม่มีข้อมูลระยะทาง';
+  const pc = (x, c, m) => x ? `<div class="pcard ${c}"><div class="md">${m}</div><div class="nm">${link(x.d)}</div><div class="av">${sub(x)}</div>${chips(x)}</div>` : '<div></div>';
+  html += sec(3, 'หอพักใกล้สถานที่อำนวยความสะดวก', 'เปรียบเทียบระยะทางไปยังร้านสะดวกซื้อ ตลาด ร้านขายยา และร้านซักอบผ้า โดยระยะทางที่น้อยกว่าแสดงว่าสถานที่ตั้งอยู่ใกล้กว่า',
+    near[0] ? `<b>${esc(near[0].d.name)}</b> อยู่ในอันดับสูงสุด โดยมีสิ่งอำนวยความสะดวกในระยะ 500 เมตร <b>${near[0].hit.length}</b> ประเภท และมีระยะทางเฉลี่ย <b>${Math.round(near[0].avg)} เมตร</b>` : 'ยังไม่มีข้อมูลระยะทาง',
+    `<div class="legend"><span class="chip d1">ระยะไม่เกิน 150 ม.</span><span class="chip d2">ระยะ 151–300 ม.</span><span class="chip d3">ระยะ 301–500 ม.</span><span class="chip d0">ระยะเกิน 500 ม. หรือไม่มีข้อมูล</span></div>`
+    + (near.length ? `<div class="pod">${pc(near[1], 'r2', '🥈')}${pc(near[0], 'r1', '🥇')}${pc(near[2], 'r3', '🥉')}</div>` : '')
+    + near.slice(3).map((x, i) => `<div class="row"><div class="no">${i + 4}</div><div class="in">${link(x.d)}<div>${chips(x)}</div></div><div class="rt">${sub(x)}</div></div>`).join(''));
+
+// 3) ฝั่งไหนคนสนใจมากกว่า
+const Z = {};
+
+L.forEach(d => {
+  const k = String(d.zone || '').trim();
+
+  // แสดงเฉพาะสองฝั่ง ไม่รวม "ไม่ระบุ"
+  if (k !== 'ฝั่งมอ' && k !== 'ฝั่งตรงข้ามมอ') return;
+
+  (Z[k] ??= { n: 0, c: 0, ps: [] });
+
+  Z[k].n++;
+  Z[k].c += clicks(d);
+
+  if (price(d)) Z[k].ps.push(price(d));
+});
+
+// เรียงตามจำนวนครั้งที่เปิดดู
+const zs = Object.entries(Z)
+  .sort((a, b) => b[1].c - a[1].c);
+
+// คำนวณยอดเปิดดูเฉพาะสองฝั่ง
+const zoneTotal = zs.reduce((sum, [, v]) => sum + v.c, 0);
+
+const zcls = k =>
+  k === 'ฝั่งมอ' ? 'A' : 'B';
+
+html += sec(
+  2,
+  'เปรียบเทียบความสนใจตามโซนที่พัก',
+  'แสดงสัดส่วนค้นหาโซนที่พัก จำนวนหอพัก และราคาเริ่มต้นเฉลี่ยของแต่ละโซน',
+
+  zs.length && zoneTotal
+    ? `โซน <b>${esc(zs[0][0])}</b> มีจำนวนการค้นหารายละเอียดมากที่สุด
+       คิดเป็น <b>${Math.round(zs[0][1].c / zoneTotal * 100)}%</b>
+       ของยอดค้นหารายละเอียดจากสองโซนที่ระบุ`
+    : 'ยังไม่มีข้อมูลยอดค้นหารายละเอียด',
+
+  `<div class="two">
+    ${zs.map(([k, v]) => {
+
+      const pc = zoneTotal
+        ? Math.round(v.c / zoneTotal * 100)
+        : 0;
+
+      const avg = v.ps.length
+        ? Math.round(
+            v.ps.reduce((a, b) => a + b, 0) / v.ps.length
+          )
+        : 0;
+
+      return `
+        <div class="zc ${zcls(k)}">
+          <div class="nm">${esc(k)}</div>
+
+          <div class="pc">${pc}%</div>
+
+          <div class="meter">
+            <i style="width:${pc}%"></i>
+          </div>
+
+          <small>
+            ${v.n} หอพัก · ยอดเปิดดู ${v.c} ครั้ง
+          </small>
+
+          <small>
+            ราคาเริ่มต้นเฉลี่ย
+            ${avg ? fmt(avg) + ' บาท/เดือน' : '-'}
+          </small>
+        </div>
+      `;
+
+    }).join('')}
+  </div>`
+);
+
+  // 4) พื้นที่ที่เคยเกิดน้ำท่วม (ระดับพื้นที่ ไม่ได้ตัดสินรายหอ)
+html += `
+<style>
+.f4-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
+.f4-head h2{font-size:19px;font-weight:600;margin:0;color:#1e293b}
+.f4-head p{font-size:13px;color:#94a3b8;margin:4px 0 0}
+.f4-tag{font-size:11px;color:#7c3aed;background:#f5f3ff;padding:5px 11px;border-radius:30px;white-space:nowrap}
+.f4-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f4-zone{padding:20px;border-radius:15px;border:1px solid #e9eaf2;background:#fafbfe}
+.f4-zone.warn{background:#fffbf5;border-color:#f3e0c4}
+.f4-name{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#475569}
+.f4-dot{width:8px;height:8px;background:#8b5cf6;border-radius:50%}
+.f4-warn .f4-dot,.f4-zone.warn .f4-dot{background:#e8a44c}
+.f4-status{font-size:20px;font-weight:600;color:#252c43;margin:15px 0 6px}
+.f4-zone.warn .f4-status{color:#ad6b20}
+.f4-desc{font-size:13px;color:#64748b;line-height:1.7;margin:0}
+.f4-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid #f0f0f5}
+.f4-note{color:#94a3b8;font-size:12px;line-height:1.6}
+.f4-link{display:inline-flex;align-items:center;gap:9px;background:#7c3aed;color:white!important;text-decoration:none;padding:10px 15px;border-radius:10px;font-size:13px;font-weight:500;white-space:nowrap;transition:.2s}
+.f4-link:hover{background:#6d28d9;transform:translateY(-1px)}
+@media(max-width:600px){
+  .f4-grid{grid-template-columns:1fr}
+  .f4-zone{padding:16px}
+  .f4-bottom{align-items:flex-start;flex-direction:column}
+  .f4-status{font-size:18px}
+}
+</style>
+<section class="sec">
+  <div class="f4-head">
+    <div>
+      <h2>ข้อมูลประวัติน้ำท่วมในพื้นที่</h2>
+      <p>ข้อมูลประกอบการประเมินทำเลที่พักบริเวณมหาวิทยาลัยพะเยา</p>
+    </div>
+    <span class="f4-tag">ข้อมูลระดับพื้นที่</span>
+  </div>
+  <div class="f4-grid">
+    <div class="f4-zone">
+      <div class="f4-name">
+        <span class="f4-dot"></span> ฝั่งมหาวิทยาลัย
+      </div>
+      <div class="f4-status">ควรตรวจสอบรายพื้นที่</div>
+      <p class="f4-desc">
+        ควรพิจารณาระดับพื้นที่และแนวลำน้ำบริเวณใกล้เคียง
+        เนื่องจากยังไม่มีข้อมูลยืนยันความปลอดภัยของทุกพื้นที่
+      </p>
+    </div>
+    <div class="f4-zone warn">
+      <div class="f4-name">
+        <span class="f4-dot"></span> ฝั่งตรงข้ามมหาวิทยาลัย
+      </div>
+      <div class="f4-status">มีประวัติได้รับผลกระทบจากน้ำท่วม</div>
+      <p class="f4-desc">
+        บางบริเวณเคยได้รับผลกระทบจากน้ำล้นห้วยแม่กาหลวง
+        และน้ำป่าไหลหลากในช่วงที่มีฝนตกหนัก
+      </p>
+    </div>
+  </div>
+  <div class="f4-bottom">
+    <div class="f4-note">
+      อ้างอิง: Phayao Flood Map · ArcGIS<br>
+      ข้อมูลดังกล่าวเป็นประวัติระดับพื้นที่ ไม่ใช่ผลการประเมินความเสี่ยงของหอพักรายแห่ง
+    </div>
+    <a class="f4-link"
+      href="https://www.arcgis.com/apps/dashboards/7cd8233b5db54ff3b5c453d3d1bb42cc"
+      target="_blank" rel="noopener noreferrer">
+      เปิดแผนที่ข้อมูลน้ำท่วม <span>↗</span>
+    </a>
+  </div>
+</section>`;
+  // 5) ช่วงราคา
+  const bks = BK.map(b => ({ ...b, items: L.filter(d => price(d) >= b.lo && price(d) <= b.hi).sort((x, y) => clicks(y) - clicks(x)) }));
+  const tc = bks.map(b => b.items.reduce((t, d) => t + clicks(d), 0)), best = tc.indexOf(Math.max(...tc)), tsum = tc.reduce((a, b) => a + b, 0);
+  const it = d => `<div class="it">${link(d)}<span>${clicks(d)} ครั้ง</span></div>`;
+  html += sec(5, 'ความสนใจต่อหอพักจำแนกตามช่วงราคา', 'แสดงจำนวนหอพักและสัดส่วนการเปิดดูรายละเอียดในแต่ละช่วงราคา เพื่อประกอบการวางแผนงบประมาณ',
+    tsum ? `ช่วง <b>${bks[best].r} บาท/เดือน</b> (${bks[best].n}) มีสัดส่วนการเปิดดูรายละเอียดสูงสุด <b>${Math.round(tc[best] / tsum * 100)}%</b> ของยอดเปิดดูในกลุ่มที่มีข้อมูลราคา` : 'ยังไม่มีข้อมูลสำหรับแสดงผล',
+    `<div class="bks">${bks.map((b, i) => `<div class="bk ${b.c} ${i === best && tsum ? 'best' : ''}"><div class="lb">${b.n}${i === best && tsum ? '<span class="hot">ยอดเปิดดูสูงสุด</span>' : ''}</div><div style="font-size:13px;opacity:.8">${b.r} บาท/เดือน</div>
+      <div class="big">${b.items.length} <small>หอพัก</small></div><div class="sh2"><i style="width:${tsum ? tc[i] / tsum * 100 : 0}%"></i></div><div style="font-size:12px;margin-bottom:6px">สัดส่วนการเปิดดู ${tsum ? Math.round(tc[i] / tsum * 100) : 0}% (${tc[i]} ครั้ง)</div>
+      ${b.items.slice(0, 3).map(it).join('') || '<div class="it">ไม่พบหอพักในช่วงราคานี้</div>'}${b.items.length > 3 ? `<details><summary>แสดงเพิ่มเติม ${b.items.length - 3} แห่ง</summary><div class="more">${b.items.slice(3).map(it).join('')}</div></details>` : ''}</div>`).join('')}</div>`);
+
+  document.getElementById('app').innerHTML = html;
+}, e => { console.error('dashboard', e); document.getElementById('app').innerHTML = '<div class="sec">ไม่สามารถโหลดข้อมูลได้ โปรดลองอีกครั้งในภายหลัง</div>'; });
+</script></body></html>

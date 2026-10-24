@@ -663,6 +663,14 @@
         const urlParams = new URLSearchParams(window.location.search);
         const dormId = urlParams.get('id');
 
+        // เปิดจาก Admin ให้กลับหน้า Admin; ผู้ใช้ทั่วไปกลับหน้ารายการหอพัก
+        const referrerPage = (() => {
+            try { return new URL(document.referrer).pathname.split('/').pop().toLowerCase(); }
+            catch { return ''; }
+        })();
+        const backPage = (urlParams.get('from') === 'admin' || referrerPage === 'admin.html')
+            ? 'admin.html' : 'results.html';
+
         let currentImageIdx = 0;
         let activeImagesList = [];
 
@@ -871,7 +879,7 @@
                                 </div>
                             </div>
                             <div class="header-actions">
-                                <a href="results.html" class="btn-icon-action">← กลับ</a>
+                                <a href="${backPage}" class="btn-icon-action">← กลับ</a>
                                 <button class="btn-icon-action" onclick="navigator.clipboard.writeText(window.location.href); alert('คัดลอกลิงก์แล้ว!');">🔗 แชร์</button>
                             </div>
                         </div>

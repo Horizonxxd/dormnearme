@@ -1,592 +1,488 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Dorm Near Me</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="ui-kit.js"></script>
+<style>
+:root{--p:#7C3AED;--p2:#6366F1;--bg:#f4f5fb;--ink:#1e293b;--mute:#64748b;--ok:#16a34a;--bad:#ef4444}
+*{box-sizing:border-box}body{margin:0;font-family:Kanit,sans-serif;background:var(--bg);color:var(--ink)}.hidden{display:none!important}
+.top{background:linear-gradient(90deg,var(--p),var(--p2));color:#fff;display:flex;justify-content:space-between;align-items:center;padding:12px 28px;position:sticky;top:0;z-index:50}
+.top a{color:#fff;text-decoration:none;margin-right:18px;opacity:.85}.top a.on{opacity:1;font-weight:600;border-bottom:2px solid #fff}
+.right{display:flex;align-items:center;gap:14px;font-size:13px}.bell{position:relative;background:rgba(255,255,255,.18);border:0;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer}
+.badge{position:absolute;top:-4px;right:-4px;background:var(--bad);color:#fff;border-radius:10px;font-size:11px;min-width:18px;padding:1px 5px;animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}70%{box-shadow:0 0 0 8px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.lo{background:#fff;color:var(--bad);border:0;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit}
+.wrap{max-width:1300px;margin:0 auto;padding:24px 28px}h1{margin:0 0 4px;font-size:24px}.sub{color:var(--mute);margin-bottom:18px;font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(30,41,59,.06)}
+.stat{display:flex;gap:14px;align-items:center}.ico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px}
+.stat b{font-size:26px;display:block;line-height:1.1}.stat span{color:var(--mute);font-size:13px}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}.col{display:flex;flex-direction:column;gap:20px}
+h3{margin:0 0 12px;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+.pend{display:flex;gap:12px;align-items:center;border:1px solid #eef0f6;border-radius:12px;padding:12px;margin-bottom:10px}
+.pend.new{border-color:var(--p);background:#faf7ff}.pend .in{flex:1}.pend b{font-size:15px}.pend small{color:var(--mute);display:block}
+.tag-new{background:var(--bad);color:#fff;font-size:10px;border-radius:8px;padding:1px 7px;margin-left:6px}
+.b{border:0;border-radius:8px;padding:7px 12px;font-family:inherit;cursor:pointer;font-size:13px;text-decoration:none;display:inline-block}
+.b.v{background:#EEF2FF;color:var(--p)}.b.ok{background:#dcfce7;color:#166534}.b.no{background:#fee2e2;color:#b91c1c}.b.rs{background:#fff;color:#475569;border:1px solid #cbd5e1;line-height:1.3;font-size:12px}.b.rs:hover{background:#dcfce7;color:#166534;border-color:#86efac}
+.tag-done{background:#dcfce7;color:#166534;font-size:11px;border-radius:8px;padding:1px 8px;margin-left:6px}
+.tag-wait{background:#fef3c7;color:#92400e;font-size:11px;border-radius:8px;padding:1px 8px;margin-left:6px}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:var(--mute);font-weight:500;padding:8px;border-bottom:2px solid #eef0f6}td{padding:9px 8px;border-bottom:1px solid #f1f3f9}
+a.l{color:var(--ink);text-decoration:none}a.l:hover{color:var(--p)}.empty{text-align:center;color:#94a3b8;padding:18px;border:2px dashed #e2e8f0;border-radius:12px}
+.ch{position:relative;height:240px}
+@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.wrap{padding:16px}}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Dorm Near Me!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --purple: #7C3AED;
-            --nav-purple: #6366F1;
-            --light-purple: #EEF2FF;
-            --approve-green: #7ed957;
-            --edit-yellow: #ffde59;
-            --reject-red: #ff5757;
-        }
+/* เพิ่มเฉพาะกราฟผู้เข้าชมรายวัน — ใช้สีและการ์ดเดิม */
+.daily-card{margin-bottom:20px}
+.daily-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.daily-head h3{margin:0}
+.daily-controls{display:flex;align-items:center;gap:8px}
+.daily-controls button{font:500 13px Kanit,sans-serif;border:1px solid #eef0f6;background:#fff;color:var(--mute);border-radius:8px;padding:6px 12px;cursor:pointer}
+.daily-controls button.active{color:var(--p);background:#EEF2FF;border-color:#ddd6fe}
+.daily-hint{font-size:12px;color:var(--mute);margin:5px 0 12px}
+.daily-chart{height:230px;position:relative}
+.daily-state{font-size:12px;color:var(--mute);margin:12px 0 0}
 
-        body {
-            font-family: 'Kanit', sans-serif;
-            background: #f9f9f9;
-            margin: 0;
-            padding: 0;
-        }
+/* เพิ่มเฉพาะตัวแก้ไขข้อมูลหอพัก โดยคงสีและการ์ดเดิม */
+.dorm-table-scroll{overflow-x:auto}
+.dorm-clicks{font-weight:600;color:var(--p);white-space:nowrap;font-variant-numeric:tabular-nums}
+.dorm-actions{display:flex;gap:6px;align-items:center;white-space:nowrap}
+.b.edit{background:#EEF2FF;color:var(--p)}.b.edit:hover{background:#e0e7ff}
+.editor-dialog{width:min(94vw,560px);max-height:min(90vh,850px);overflow:auto;border:1px solid #e9eaf2;border-radius:18px;padding:0;box-shadow:0 24px 80px rgba(30,41,59,.22);color:var(--ink);font:inherit}
+.editor-dialog::backdrop{background:rgba(15,23,42,.52)}
+.editor-inner{padding:24px}
+.editor-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:18px}
+.editor-heading h2{margin:0;font-size:20px;font-weight:600}.editor-heading p{margin:4px 0 0;font-size:13px;color:var(--mute)}
+.editor-close{border:0;background:#f1f5f9;color:#475569;border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:19px}
+.editor-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.editor-field{min-width:0}.editor-field.wide{grid-column:1/-1}
+.editor-field label{font-size:13px;font-weight:500;display:block;margin-bottom:6px}
+.editor-field input,.editor-field select{display:block;width:100%;min-height:42px;border:1px solid #dfe3ef;border-radius:10px;padding:9px 12px;font:400 14px Kanit,sans-serif;color:var(--ink);background:#fff;outline:none}
+.editor-field input:focus,.editor-field select:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(124,58,237,.10)}
+.editor-field small{display:block;margin-top:5px;font-size:11px;color:var(--mute)}
+.editor-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid #eef0f6;padding-top:16px;margin-top:20px}
+.editor-views{font-size:12px;color:var(--mute)}.editor-views strong{color:var(--p)}
+.editor-buttons{display:flex;gap:8px}.editor-buttons button{font:500 13px Kanit,sans-serif;border-radius:9px;padding:9px 15px;cursor:pointer}
+.editor-cancel{border:1px solid #e2e8f0;color:#475569;background:#fff}
+.editor-save{border:1px solid var(--p);background:var(--p);color:#fff}.editor-save:disabled{opacity:.55;cursor:wait}
+.editor-error{color:#b91c1c;font-size:12px;margin:10px 0 0}
+@media(max-width:560px){.editor-inner{padding:18px}.editor-fields{grid-template-columns:1fr}.editor-footer{align-items:stretch;flex-direction:column}.editor-buttons{justify-content:flex-end}}
+</style></head><body>
+<div class="top"><div><a href="index.html">Home</a><a href="admin.html" class="on">Admin Dashboard</a><a href="dashboard.html">Analytics</a></div>
+<div class="right"><button class="bell" id="bell" title="รายการใหม่">🔔<span class="badge hidden" id="badge">0</span></button><span id="admin-email-display"></span><button class="lo" id="btn-logout">Logout</button></div></div>
 
-        .hidden {
-            display: none !important;
-        }
-
-        /* Navbar Styling */
-        .navbar {
-            background: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 50px;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 20px;
-        }
-
-        .nav-links {
-            display: flex;
-        }
-
-        .nav-item {
-            padding: 15px 25px;
-            cursor: pointer;
-            color: #555;
-            font-weight: 400;
-            transition: 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .nav-item:hover {
-            color: var(--purple);
-        }
-
-        .nav-item.active {
-            border-bottom: 3px solid var(--purple);
-            color: var(--purple);
-            font-weight: bold;
-        }
-
-        .admin-container {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 30px;
-            padding: 20px 50px;
-            max-width: 1400px;
-            margin: auto;
-        }
-
-        /* Left Column: Pending Cards */
-        .pending-section h2 {
-            color: #333;
-            font-size: 20px;
-        }
-
-        .dorm-card {
-            background: #fff;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            display: flex;
-            gap: 15px;
-            border: 2px solid var(--light-purple);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .dorm-info {
-            flex: 1;
-        }
-
-        .dorm-info h3 {
-            margin: 0 0 5px 0;
-            font-size: 18px;
-        }
-
-        .dorm-info p {
-            margin: 2px 0;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .action-btns {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .btn-action {
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-family: 'Kanit';
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 13px;
-            transition: 0.2s;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .btn-preview {
-            background: var(--light-purple);
-            color: var(--purple);
-            border: 1px solid var(--purple);
-        }
-
-        .btn-preview:hover {
-            background: var(--purple);
-            color: white;
-        }
-
-        .btn-approve {
-            background: var(--approve-green);
-            color: #1a4d00;
-        }
-
-        .btn-reject {
-            background: var(--reject-red);
-            color: white;
-        }
-
-        /* Right Column: Stats & Table */
-        .stats-grid {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .stat-box {
-            background: var(--light-purple);
-            padding: 15px;
-            border-radius: 15px;
-            text-align: center;
-            flex: 1;
-        }
-
-        .stat-label {
-            font-size: 13px;
-            color: #555;
-        }
-
-        .stat-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--purple);
-        }
-
-        .table-container {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 30px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 2px solid var(--light-purple);
-            color: #444;
-        }
-
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-
-        .icon-btn {
-            cursor: pointer;
-            font-size: 18px;
-            margin: 0 5px;
-            border: none;
-            background: none;
-        }
-
-        /* Listing Title Link Styling */
-        .dorm-link {
-            color: #333;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .dorm-link:hover {
-            color: var(--purple);
-            text-decoration: underline;
-        }
-    </style>
-</head>
-
-<body>
-
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="index.html" class="nav-item">Home</a>
-            <a href="admin.html" class="nav-item active">Admin Dashboard</a>
-        </div>
-        <div id="user-info" style="display: flex; align-items: center;">
-            <span id="admin-email-display" style="font-size:12px; margin-right:10px; color:#555;"></span>
-            <button id="btn-logout" style="color:var(--reject-red); background:none; border:none; cursor:pointer; font-family:'Kanit'; font-weight: 500;">Logout</button>
-        </div>
-    </nav>
-
-    <div class="admin-container hidden" id="admin-content">
-        <div class="pending-section">
-            <h2>หอพักรอการตรวจสอบ</h2>
-            <div id="pending-list">
-                <p>กำลังโหลดรายการขออนุมัติ...</p>
-            </div>
-
-            <div class="table-container" style="margin-top: 30px; border-top: 4px solid var(--reject-red);">
-                <h3 style="margin-top: 0;">🚩 รายงานข้อมูลผิดพลาด</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>รายละเอียด</th>
-                            <th>จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="report-table-body">
-                        <tr>
-                            <td colspan="2">กำลังโหลดรายงาน...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- HOT LISTINGS & CLICK STATS BELOW REPORTS -->
-            <div class="table-container" style="margin-top: 30px; border-top: 4px solid var(--purple);">
-                <h3 style="margin-top: 0;">🔥 Hot Listings (ยอดคลิกเข้าชมหอพัก)</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ชื่อหอพัก</th>
-                            <th>จำนวนการคลิกชม</th>
-                        </tr>
-                    </thead>
-                    <tbody id="hot-listings-table">
-                        <tr>
-                            <td colspan="2">กำลังโหลดข้อมูลยอดคลิก...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="main-section">
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-label">ยอดผู้เข้าชม</div>
-                    <div class="stat-number" id="stat-views">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">คำขอใหม่</div>
-                    <div class="stat-number" id="stat-pending">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">หอพักทั้งหมด</div>
-                    <div class="stat-number" id="stat-total">0</div>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <h3 style="margin-top: 0;">รายการหอพักที่มีอยู่</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ชื่อหอพัก</th>
-                            <th>โซน</th>
-                            <th>ราคา</th>
-                            <th>จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="approved-table"></tbody>
-                </table>
-            </div>
-        </div>
+<div class="wrap hidden" id="admin-content">
+<h1>ภาพรวมระบบ</h1><div class="sub"></div>
+<div class="cards">
+<div class="card stat"><div class="ico" style="background:#EEF2FF">👁️</div><div><b id="stat-views">0</b><span>ยอดเข้าชมหอพักทั้งหมด</span></div></div>
+<div class="card stat"><div class="ico" style="background:#fef3c7">⏳</div><div><b id="stat-pending">0</b><span>รออนุมัติ</span></div></div>
+<div class="card stat"><div class="ico" style="background:#dcfce7">🏢</div><div><b id="stat-total">0</b><span>หอพักทั้งหมด</span></div></div>
+<div class="card stat"><div class="ico" style="background:#fee2e2">🚩</div><div><b id="stat-reports">0</b><span>รายงานข้อมูลผิด</span></div></div>
+</div>
+<!-- เพิ่มเฉพาะกราฟรายวัน ไม่แก้ส่วนอนุมัติและรายงานเดิม -->
+<section class="card daily-card">
+  <div class="daily-head">
+    <h3>ผู้เข้าชมเว็บไซต์รายวัน</h3>
+    <div class="daily-controls" aria-label="เลือกช่วงเวลา">
+      <button type="button" class="active" data-days="7" aria-pressed="true">7 วัน</button>
+      <button type="button" data-days="30" aria-pressed="false">30 วัน</button>
     </div>
+  </div>
+  <div class="daily-hint">นับหนึ่งเบราว์เซอร์ต่อวันโดยประมาณ</div>
+  <div class="daily-chart"><canvas id="chDaily" aria-label="กราฟจำนวนเบราว์เซอร์ที่เข้าชมเว็บไซต์รายวัน"></canvas></div>
+  <div id="daily-sum" style="display:flex;gap:22px;flex-wrap:wrap;font-size:14px;color:var(--mute);margin-top:10px"></div>
+  <p class="daily-state" id="daily-status">กำลังโหลดสถิติรายวัน...</p>
+</section>
+<div class="grid">
+<div class="col">
+<div class="card"><h3>หอพักรอการตรวจสอบ</h3><div id="pending-list"><div class="empty">กำลังโหลด...</div></div></div>
+<div class="card"><h3>🚩 รายงานข้อมูลผิดพลาด</h3><table><tbody id="report-table-body"></tbody></table></div>
+</div>
+<div class="col">
+<div class="card"><h3>🔥 ยอดเข้าชมสูงสุด 5 อันดับ</h3><div class="ch"><canvas id="chTop"></canvas></div></div>
+<div class="card"><h3 style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">หอพักที่มีอยู่ <input id="q" placeholder="ค้นหาชื่อหอพัก..." style="font:400 13px Kanit,sans-serif;padding:7px 12px;border:1px solid #e2e8f0;border-radius:10px;min-width:170px"></h3><div class="daily-hint" id="count-line"></div><div class="dorm-table-scroll"><table><thead><tr><th>ชื่อ</th><th>โซน</th><th>ราคา</th><th>ยอดเข้าชม</th><th>จัดการ</th></tr></thead><tbody id="approved-table"></tbody></table></div></div>
+</div></div></div>
 
-    <script type="module">
-        import { auth, app } from './auth.js';
-        import { getFirestore, collection, query, onSnapshot, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const db = getFirestore(app);
-        const adminEmails = ["seannakhonboy@gmail.com", "zainlawilmail@gmail.com"];
+<!-- หน้าต่างแก้ไขข้อมูล ใช้เฉพาะผู้ดูแลระบบหลังผ่านการตรวจสอบสิทธิ์ -->
+<dialog id="editDormDialog" class="editor-dialog" aria-labelledby="editDormTitle">
+  <form id="editDormForm" class="editor-inner">
+    <div class="editor-heading">
+      <div><h2 id="editDormTitle">แก้ไขข้อมูลหอพัก</h2><p>แก้ไขข้อมูลที่ต้องการแล้วเลือกบันทึก</p></div>
+      <button type="button" class="editor-close" id="editDormClose" aria-label="ปิดหน้าต่าง">×</button>
+    </div>
+    <div class="editor-fields">
+      <div class="editor-field wide"><label for="editDormName">ชื่อหอพัก</label><input id="editDormName" required maxlength="150" autocomplete="off"></div>
+      <div class="editor-field wide"><label for="editDormPhone">เบอร์โทรศัพท์ติดต่อ</label><input id="editDormPhone" type="tel" maxlength="30" inputmode="tel" placeholder="เช่น 0812345678"></div>
+      <div class="editor-field"><label for="editDormMin">ราคาเริ่มต้น (บาท/เดือน)</label><input id="editDormMin" type="number" min="1" max="10000000" step="1" placeholder="เช่น 2500"></div>
+      <div class="editor-field"><label for="editDormMax">ราคาสูงสุด (บาท/เดือน)</label><input id="editDormMax" type="number" min="1" max="10000000" step="1" placeholder="ถ้ามีหลายราคา"></div>
+      <div class="editor-field"><label for="editDormType">ประเภทหอพัก</label><select id="editDormType" required>
+        <option value="" disabled>เลือกประเภทหอพัก</option>
+        <option value="หอพักชาย">หอพักชาย</option>
+        <option value="หอพักหญิง">หอพักหญิง</option>
+        <option value="หอพักรวม">หอพักรวม</option>
 
-        // Utility function to escape HTML special characters and prevent XSS
-        function escapeHTML(str) {
-            if (!str) return '-';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+      </select></div>
+      <div class="editor-field"><label for="editDormZone">โซนที่พักอาศัย</label><select id="editDormZone" required>
+        <option value="" disabled>เลือกโซนที่พักอาศัย</option>
+        <option value="ฝั่งมอ">ฝั่งมอ</option>
+        <option value="ฝั่งตรงข้ามมอ">ฝั่งตรงข้ามมอ</option>
+      </select></div>
+    </div>
+    <p id="editDormPriceInfo" class="daily-hint" style="margin:12px 0 0"></p>
+    <p id="editDormError" class="editor-error" role="alert" hidden></p>
+    <div class="editor-footer">
+      <span class="editor-views">ยอดเข้าชมสะสม: <strong id="editDormClicks">0</strong> ครั้ง (ดูอย่างเดียว)</span>
+      <div class="editor-buttons"><button type="button" class="editor-cancel" id="editDormCancel">ยกเลิก</button><button type="submit" id="editDormSave" class="editor-save">บันทึกข้อมูล</button></div>
+    </div>
+  </form>
+</dialog>
+
+<script type="module">
+import { auth, app } from './auth.js';
+import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, deleteField, query, orderBy, documentId, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+if (!window.showToast) { console.error('ไม่พบ ui-kit.js — ใช้ popup สำรองของเบราว์เซอร์'); window.showToast = m => window.alert(m); window.confirmBox = async m => window.confirm(m); }
+const db = getFirestore(app);
+const adminEmails = ["seannakhonboy@gmail.com", "zainlawilmail@gmail.com"];
+const $ = id => document.getElementById(id);
+const esc = s => s == null || s === '' ? '-' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const ms = d => d?.toMillis?.() ?? (d instanceof Date ? d.getTime() : 0);
+const fmtPrice = s => { s = String(s).trim(); if (/บาท/.test(s)) return s; const n = s.match(/\d[\d,]*/g); return n ? n.map(x => Number(x.replace(/,/g, '')).toLocaleString()).join(' – ') + ' บาท/เดือน' : s; };
+const priceOf = d => d.priceDisplay ? fmtPrice(d.priceDisplay) : (d.priceMin || d.price ? Number(d.priceMin || d.price).toLocaleString() + ' บาท/เดือน' : '-');
+
+const viewsOf = d => Math.max(0, Number(d.clickCount ?? d.views ?? d.viewCount ?? 0) || 0);
+// ข้อมูลต่างเวอร์ชันอาจตั้งชื่อฟิลด์ไม่เหมือนกัน จึงอ่าน/เขียนฟิลด์ที่มีอยู่จริงก่อน
+const phoneKeys = ['phone', 'phoneNumber', 'contactPhone', 'contactNumber', 'tel', 'telephone', 'ownerPhone', 'contact.phone', 'contact.phoneNumber'];
+const typeKeys = ['dormType', 'type', 'accommodationType', 'propertyType', 'gender', 'category'];
+const nestedVal = (obj, path) => path.split('.').reduce((val, key) => val && typeof val === 'object' ? val[key] : undefined, obj);
+const existingKeys = (d, keys) => keys.filter(k => typeof nestedVal(d,k) === 'string' || typeof nestedVal(d,k) === 'number');
+const firstValue = (d, keys) => existingKeys(d,keys).map(k => nestedVal(d,k)).find(v => v != null && String(v).trim()) ?? '';
+const parseAmounts = d => {
+  const raw = String(d.priceDisplay ?? d.priceRange ?? '').replace(/\s/g,'');
+  const matches = raw.match(/\d[\d,]*/g) || [];
+  const numbers = matches.map(x => Number(x.replace(/,/g,''))).filter(x => Number.isFinite(x) && x > 0);
+  const asPositive = n => n != null && Number.isFinite(Number(n)) && Number(n) > 0 ? Number(n) : null;
+  return {min:asPositive(d.priceMin) ?? asPositive(d.price) ?? numbers[0] ?? null,
+          max:asPositive(d.priceMax) ?? numbers[1] ?? null};
+};
+
+let seen = Number(localStorage.getItem('adminSeenTs') || 0), pendingN = 0, reportN = 0, chart, listings = [];
+
+// ข้อมูลเข้าชมรายวัน: อ่านเฉพาะ 30 วันล่าสุดจาก dailyVisitors/YYYY-MM-DD
+let dailyChart, dailyDays = 7;
+const dailyCounts = new Map();
+const dateParts = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit'
+}).formatToParts(new Date());
+const dateValue = kind => Number(dateParts.find(p => p.type === kind).value);
+const bangkokTodayUTC = Date.UTC(dateValue('year'), dateValue('month') - 1, dateValue('day'));
+const dayKey = offset => new Date(bangkokTodayUTC + offset * 86400000).toISOString().slice(0,10);
+
+function renderDailyChart() {
+  const dates = Array.from({length: dailyDays}, (_, i) => dayKey(i - dailyDays + 1));
+  const labels = dates.map(s => `${Number(s.slice(8))}/${Number(s.slice(5,7))}`);
+  const values = dates.map(s => dailyCounts.get(s) ?? 0);
+  const status = $('daily-status');
+  if (dailyChart) { dailyChart.destroy(); dailyChart = null; }
+  const sumEl = $('daily-sum');
+  if (!dailyCounts.size) { sumEl.innerHTML = '';
+    status.textContent = 'ยังไม่มีข้อมูลรายวัน — เริ่มเก็บข้อมูลเมื่อเพิ่ม visitor-tracker.js ในหน้าเว็บไซต์';
+    return;
+  }
+  status.textContent = 'ข้อมูลเริ่มนับตั้งแต่ติดตั้งระบบ · จำนวนเบราว์เซอร์โดยประมาณ';
+  const tdy = dailyCounts.get(dayKey(0)) ?? 0, yst = dailyCounts.get(dayKey(-1)) ?? 0, total = values.reduce((a, b) => a + b, 0), peak = Math.max(...values);
+  const delta = tdy === yst ? 'เท่าเมื่อวาน' : tdy > yst ? `<span style="color:#15803d">▲ ${tdy - yst}</span> จากเมื่อวาน` : `<span style="color:#b91c1c">▼ ${yst - tdy}</span> จากเมื่อวาน`;
+  sumEl.innerHTML = `<span>วันนี้ <b style="color:#1e293b;font-size:18px">${tdy.toLocaleString()}</b> (${delta})</span><span>รวมช่วงนี้ <b style="color:#1e293b">${total.toLocaleString()}</b></span><span>เฉลี่ยต่อวัน <b style="color:#1e293b">${Math.round(total / dailyDays).toLocaleString()}</b></span><span>สูงสุด <b style="color:#1e293b">${peak.toLocaleString()}</b> (${labels[values.indexOf(peak)]})</span>`;
+  const ctx = $('chDaily').getContext('2d');
+  const fill = ctx.createLinearGradient(0, 0, 0, 230);
+  fill.addColorStop(0, 'rgba(124,58,237,.16)');
+  fill.addColorStop(1, 'rgba(124,58,237,0)');
+  dailyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        label: 'ผู้เข้าชม',
+        borderColor: '#7C3AED',
+        backgroundColor: fill,
+        fill: true,
+        borderWidth: 2.5,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        tension: .35
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => `${c.parsed.y.toLocaleString('th-TH')} เบราว์เซอร์` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: dailyDays === 7 ? 7 : 10, color: '#64748b' } },
+        y: { beginAtZero: true, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#eef0f6' } }
+      }
+    }
+  });
+}
+
+document.querySelectorAll('[data-days]').forEach(button => button.addEventListener('click', () => {
+  dailyDays = Number(button.dataset.days);
+  document.querySelectorAll('[data-days]').forEach(b => {
+    const active = b === button;
+    b.classList.toggle('active',active);
+    b.setAttribute('aria-pressed', String(active));
+  });
+  renderDailyChart();
+}));
+
+function loadDailyVisitors() {
+  const q = query(collection(db,'dailyVisitors'), orderBy(documentId()),
+    startAt(dayKey(-29)), endAt(dayKey(0)));
+  onSnapshot(q, snap => {
+    dailyCounts.clear();
+    snap.forEach(d => {
+      const count = Number(d.data().visitors);
+      if (Number.isFinite(count) && count >= 0) dailyCounts.set(d.id, count);
+    });
+    renderDailyChart();
+  }, err => {
+    console.error('Daily visits:', err);
+    $('daily-status').textContent = 'อ่านสถิติรายวันไม่ได้ กรุณาตรวจสอบสิทธิ์ Firestore';
+  });
+}
+
+function updateBadge() {
+  const n = pendingN + reportN; $('badge').textContent = n; $('badge').classList.toggle('hidden', n === 0);
+  document.title = (n ? `(${n}) ` : '') + 'Admin Dashboard - Dorm Near Me';
+}
+$('bell').onclick = () => { localStorage.setItem('adminSeenTs', Date.now()); seen = Date.now(); document.querySelectorAll('.pend.new').forEach(e => e.classList.remove('new')); document.querySelectorAll('.tag-new').forEach(e => e.remove());
+  showToast(pendingN + reportN ? `มีรายการรอดำเนินการ ${pendingN} คำขอ / ${reportN} รายงาน` : 'ไม่มีรายการใหม่', 'info'); };
+
+// ตรรกะเดิมจาก admin.html ต้นฉบับ แสดงผลผ่าน ui-kit.js (กล่องยืนยันและ Toast กลางจอ)
+const ok = (m, t = 'success') => { try { window.showToast(m, t); } catch (e) { console.log(m); } };
+window.approveDorm = async (id) => {
+  try {
+    const pendingRef = doc(db, "pendingListings", id);
+    const pendingSnap = await getDoc(pendingRef);
+    if (pendingSnap.exists()) {
+      const data = pendingSnap.data();
+      if (!await confirmBox('ยืนยันการอนุมัติหอพัก "' + (data.name || '') + '" ให้แสดงบนเว็บไซต์?')) return;
+      delete data.status;
+      await setDoc(doc(db, "listings", id), data);
+      await deleteDoc(pendingRef);
+      ok('อนุมัติหอพักเรียบร้อยแล้ว');
+    } else { window.showToast("ไม่พบข้อมูลหอพักนี้", 'error'); }
+  } catch (e) { console.error("Approve Error:", e); window.showToast("เกิดข้อผิดพลาดในการอนุมัติหอพัก", 'error'); }
+};
+window.rejectPending = async (id) => {
+  if (await confirmBox("ยืนยันการปฏิเสธและลบรายการคำขอนี้?")) {
+    try { await deleteDoc(doc(db, "pendingListings", id)); ok('ปฏิเสธรายการแล้ว', 'warn'); }
+    catch (e) { console.error("Reject Error:", e); window.showToast("เกิดข้อผิดพลาดในการปฏิเสธรายการ", 'error'); }
+  }
+};
+window.deleteDorm = async (id) => {
+  if (await confirmBox("ยืนยันการลบข้อมูลหอพักนี้?")) {
+    try { await deleteDoc(doc(db, "listings", id)); ok('ลบหอพักแล้ว'); }
+    catch (e) { console.error("Delete Error:", e); window.showToast("เกิดข้อผิดพลาดในการลบข้อมูล", 'error'); }
+  }
+};
+// ทำเครื่องหมายว่าแก้ไขแล้ว — เก็บรายงานไว้ ไม่ลบ
+window.resolveReport = async (id) => {
+  if (await confirmBox("ยืนยันว่าแก้ไขข้อมูลตามที่แจ้งเรียบร้อยแล้ว?\nรายงานจะยังถูกเก็บไว้ในรายการ")) {
+    try { await updateDoc(doc(db, "reports", id), { status: 'resolved', resolvedAt: new Date() }); ok('บันทึกว่าแก้ไขแล้ว'); }
+    catch (e) { console.error("Report Resolve Error:", e); window.showToast("เกิดข้อผิดพลาดในการอัปเดตรายงาน", 'error'); }
+  }
+};
+window.reopenReport = async (id) => {
+  try { await updateDoc(doc(db, "reports", id), { status: 'pending', resolvedAt: null }); ok('เปิดรายงานกลับมาแล้ว', 'info'); }
+  catch (e) { console.error(e); window.showToast("เกิดข้อผิดพลาด", 'error'); }
+};
+window.deleteReport = async (id) => {
+  if (await confirmBox("ลบรายงานนี้ถาวร? ลบแล้วกู้คืนไม่ได้")) {
+    try { await deleteDoc(doc(db, "reports", id)); ok('ลบรายงานแล้ว'); }
+    catch (e) { console.error("Report Delete Error:", e); window.showToast("เกิดข้อผิดพลาดในการลบรายงาน", 'error'); }
+  }
+};
+
+onAuthStateChanged(auth, user => {
+  if (!user || !adminEmails.includes(user.email)) { showToast('Access Denied: Admin only.', 'error', 0); setTimeout(() => location.href = 'index.html', 1500); return; }
+  $('admin-content').classList.remove('hidden'); $('admin-email-display').textContent = user.email; load(); loadDailyVisitors();
+});
+
+// เปิด/บันทึกหน้าต่างแก้ไขรายการที่อนุมัติแล้ว (collection: listings)
+let editingId = null;
+function openEditDorm(id) {
+  const d = listings.find(item => item.id === id);
+  if (!d) { ok('ไม่พบข้อมูลหอพักที่เลือก', 'error'); return; }
+  editingId = id;
+  $('editDormName').value = String(d.name ?? '');
+  $('editDormPhone').value = String(firstValue(d, phoneKeys));
+  const rent = parseAmounts(d);
+  $('editDormMin').value = rent.min ?? '';
+  $('editDormMax').value = rent.max ?? '';
+  // หากข้อมูลเดิมมีค่านอกตัวเลือก ให้แสดงค่าเดิมไว้ก่อนเพื่อไม่เปลี่ยนข้อมูลโดยไม่ตั้งใจ
+  const setSelectValue = (id, value) => {
+    const select = $(id), current = String(value ?? '').trim();
+    select.querySelectorAll('option[data-legacy]').forEach(option => option.remove());
+    if (current && !Array.from(select.options).some(option => option.value === current)) {
+      const option = new Option(`${current} (ข้อมูลเดิม)`, current);
+      option.dataset.legacy = 'true';
+      select.add(option);
+    }
+    select.value = current;
+  };
+  setSelectValue('editDormType', firstValue(d, typeKeys));
+  setSelectValue('editDormZone', d.zone);
+  $('editDormClicks').textContent = viewsOf(d).toLocaleString('th-TH');
+  $('editDormPriceInfo').textContent = rent.min == null && d.priceDisplay
+    ? `ราคาเดิม: ${String(d.priceDisplay)} (หากไม่ต้องการเปลี่ยนราคา สามารถเว้นช่องราคาได้)` : '';
+  $('editDormError').hidden = true;
+  $('editDormSave').disabled = false;
+  $('editDormSave').textContent = 'บันทึกข้อมูล';
+  $('editDormDialog').showModal();
+  $('editDormName').focus();
+}
+const closeEditor = () => { if ($('editDormDialog').open && !$('editDormSave').disabled) $('editDormDialog').close(); };
+$('editDormClose').addEventListener('click', closeEditor);
+$('editDormCancel').addEventListener('click', closeEditor);
+$('approved-table').addEventListener('click', ev => {
+  const btn = ev.target.closest('button[data-edit-dorm]');
+  if (btn) openEditDorm(btn.dataset.editDorm);
+});
+$('editDormForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  if (!editingId) return;
+  const d = listings.find(item => item.id === editingId);
+  if (!d) return;
+  const name = $('editDormName').value.trim();
+  const phone = $('editDormPhone').value.trim();
+  const dormType = $('editDormType').value.trim();
+  const zone = $('editDormZone').value.trim();
+  const minRaw = $('editDormMin').value.trim();
+  const maxRaw = $('editDormMax').value.trim();
+  const error = $('editDormError');
+  const fail = msg => { error.textContent = msg; error.hidden = false; };
+  error.hidden = true;
+  if (!name) return fail('กรุณาระบุชื่อหอพัก');
+  if (!dormType) return fail('กรุณาเลือกประเภทหอพัก');
+  if (!zone) return fail('กรุณาเลือกโซนที่พักอาศัย');
+  const phoneDigits = phone.replace(/\D/g, '');
+  if (phone && (phoneDigits.length < 8 || phoneDigits.length > 15 || !/^[+\d()\s-]+$/.test(phone)))
+    return fail('กรุณาตรวจสอบรูปแบบเบอร์โทรศัพท์');
+  if (maxRaw && !minRaw) return fail('กรุณาระบุราคาเริ่มต้นก่อนกำหนดราคาสูงสุด');
+  const min = minRaw === '' ? null : Number(minRaw), max = maxRaw === '' ? null : Number(maxRaw);
+  if ((min !== null && (!Number.isSafeInteger(min) || min <= 0)) || (max !== null && (!Number.isSafeInteger(max) || max < min)))
+    return fail('กรุณาตรวจสอบช่วงราคา โดยราคาสูงสุดต้องไม่น้อยกว่าราคาเริ่มต้น');
+  const changes = {name};
+  if (phone || existingKeys(d,phoneKeys).length) {
+    for (const key of existingKeys(d,phoneKeys).length ? existingKeys(d,phoneKeys) : ['phone']) changes[key] = phone;
+  }
+  if (dormType || existingKeys(d,typeKeys).length) {
+    for (const key of existingKeys(d,typeKeys).length ? existingKeys(d,typeKeys) : ['type']) changes[key] = dormType;
+  }
+  if (zone || d.zone != null) changes.zone = zone;
+  if (min !== null) {
+    changes.priceMin = min;
+    if (d.price !== undefined) changes.price = min;
+    changes.priceDisplay = max !== null && max !== min
+      ? `${min.toLocaleString('th-TH')} – ${max.toLocaleString('th-TH')} บาท/เดือน`
+      : `${min.toLocaleString('th-TH')} บาท/เดือน`;
+    if (max !== null) changes.priceMax = max;
+    else if (d.priceMax !== undefined) changes.priceMax = deleteField();
+  }
+  $('editDormSave').disabled = true;
+  $('editDormSave').textContent = 'กำลังบันทึก...';
+  try {
+    await updateDoc(doc(db,'listings',editingId),changes);
+    $('editDormDialog').close();
+    editingId = null;
+    ok('บันทึกข้อมูลหอพักเรียบร้อยแล้ว');
+  } catch (e) {
+    console.error('Update dorm:',e);
+    fail('บันทึกไม่สำเร็จ กรุณาตรวจสอบสิทธิ์ Firestore และลองใหม่');
+  } finally {
+    $('editDormSave').disabled = false;
+    $('editDormSave').textContent = 'บันทึกข้อมูล';
+  }
+});
+
+function renderTable() {
+  const q = $('q').value.trim().toLowerCase();
+  const rows = listings.filter(d => !q || String(d.name || '').toLowerCase().includes(q));
+  const allViews = listings.reduce((sum,d) => sum + viewsOf(d), 0);
+  const shownViews = rows.reduce((sum,d) => sum + viewsOf(d), 0);
+  $('count-line').textContent = `หอพัก ${rows.length} / ${listings.length} แห่ง · ยอดเข้าชมรวม ${allViews.toLocaleString('th-TH')} ครั้ง${q ? ` · ผลการค้นหา ${shownViews.toLocaleString('th-TH')} ครั้ง` : ''}`;
+  $('approved-table').innerHTML = rows.map(d => `<tr>
+    <td><a class="l" target="_blank" rel="noopener" href="details.html?id=${encodeURIComponent(d.id)}">${esc(d.name)}</a></td>
+    <td>${esc(d.zone)}</td><td>${esc(priceOf(d))}</td>
+    <td class="dorm-clicks">${viewsOf(d).toLocaleString('th-TH')}</td>
+    <td><div class="dorm-actions"><button type="button" class="b edit" data-edit-dorm="${esc(d.id)}">แก้ไข</button><button class="b no" onclick="deleteDorm('${d.id}')">ลบ</button></div></td>
+  </tr>`).join('') || '<tr><td colspan="5" class="empty">ไม่พบหอพัก</td></tr>';
+}
+$('q').addEventListener('input', renderTable);
+
+function load() {
+  onSnapshot(collection(db, "pendingListings"), snap => {
+    pendingN = snap.size; $('stat-pending').textContent = snap.size; updateBadge();
+    const list = $('pending-list');
+    if (snap.empty) { list.innerHTML = '<div class="empty">ไม่มีรายการรอการตรวจสอบ 🎉</div>'; return; }
+    list.innerHTML = snap.docs.map(s => { const d = s.data(), isNew = ms(d.timestamp) > seen;
+      return `<div class="pend ${isNew ? 'new' : ''}"><div class="in"><b>${esc(d.name)}</b>${isNew ? '<span class="tag-new">ใหม่</span>' : ''}<small>โซน: ${esc(d.zone)} · ${esc(priceOf(d))}</small></div>
+      <a class="b v" target="_blank" href="details.html?id=${s.id}">ดูตัวอย่าง</a>
+      <button class="b ok" onclick="approveDorm('${s.id}')">อนุมัติ</button><button class="b no" onclick="rejectPending('${s.id}')">ปฏิเสธ</button></div>`; }).join('');
+    // แจ้งเตือนเมื่อมีคำขอใหม่เข้ามาขณะเปิดหน้านี้อยู่
+    snap.docChanges().forEach(c => { if (c.type === 'added' && ms(c.doc.data().timestamp) > Date.now() - 15000) showToast('มีคำขอหอพักใหม่เข้ามา: ' + (c.doc.data().name || ''), 'info', 2500); });
+  });
+  onSnapshot(collection(db, "listings"), snap => {
+    $('stat-total').textContent = snap.size; let views = 0; const arr = [];
+    listings = snap.docs.map(s => { const d = s.data(), c = Number(d.clickCount ?? d.views ?? d.viewCount ?? 0) || 0; views += c; arr.push({ n: d.name || '-', c }); return { id: s.id, ...d }; });
+    renderTable();
+    $('stat-views').textContent = views.toLocaleString();
+    const top = arr.sort((a, b) => b.c - a.c).slice(0, 5);
+    if (chart) chart.destroy();
+    chart = new Chart($('chTop'), {
+      type: 'bar',
+      data: {
+        labels: top.map((t, i) => `${i + 1}. ${t.n}`),
+        datasets: [{
+          label: 'ยอดเข้าชม',
+          data: top.map(t => t.c),
+          backgroundColor: ['#4C1D95', '#8B5CF6', '#A78BFA', '#C4B5FD', '#DDD6FE'],
+          borderRadius: 8,
+          borderSkipped: false,
+          maxBarThickness: 29
+        }]
+      },
+      options: {
+        indexAxis: 'y', maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => `ยอดเข้าชม ${ctx.parsed.x} ครั้ง` } }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#eef0f6' } },
+          y: { grid: { display: false }, ticks: { color: '#475569' } }
         }
-
-        // Approve Function: Copy document to 'listings' and remove from 'pendingListings'
-        window.approveDorm = async (id) => {
-            try {
-                const pendingRef = doc(db, "pendingListings", id);
-                const pendingSnap = await getDoc(pendingRef);
-
-                if (pendingSnap.exists()) {
-                    const data = pendingSnap.data();
-                    
-                    // Optional: remove temporary status flag if present
-                    delete data.status;
-
-                    // Add to live listings using the same ID (or auto-ID using doc(collection(db, "listings")))
-                    await setDoc(doc(db, "listings", id), data);
-                    
-                    // Remove from pending collection
-                    await deleteDoc(pendingRef);
-                } else {
-                    alert("ไม่พบข้อมูลหอพักนี้");
-                }
-            } catch (e) {
-                console.error("Approve Error:", e);
-                alert("เกิดข้อผิดพลาดในการอนุมัติหอพัก");
-            }
-        };
-
-        // Reject / Delete Pending Function
-        window.rejectPending = async (id) => {
-            if (confirm("ยืนยันการปฏิเสธและลบรายการคำขอนี้?")) {
-                try {
-                    await deleteDoc(doc(db, "pendingListings", id));
-                } catch (e) {
-                    console.error("Reject Error:", e);
-                    alert("เกิดข้อผิดพลาดในการปฏิเสธรายการ");
-                }
-            }
-        };
-
-        window.deleteDorm = async (id) => {
-            if (confirm("ยืนยันการลบข้อมูลหอพักนี้?")) {
-                try {
-                    await deleteDoc(doc(db, "listings", id));
-                } catch (e) { 
-                    console.error("Delete Error:", e);
-                    alert("เกิดข้อผิดพลาดในการลบข้อมูล");
-                }
-            }
-        };
-
-        window.deleteReport = async (id) => {
-            if (confirm("แก้ไขข้อมูลตามที่แจ้งแล้ว และต้องการลบรายงานนี้ใช่หรือไม่?")) {
-                try {
-                    await deleteDoc(doc(db, "reports", id));
-                } catch (e) { 
-                    console.error("Report Delete Error:", e);
-                    alert("เกิดข้อผิดพลาดในการลบรายงาน");
-                }
-            }
-        };
-
-        // Authentication guard
-        onAuthStateChanged(auth, (user) => {
-            if (!user || !adminEmails.includes(user.email)) {
-                alert("Access Denied: Admin only.");
-                window.location.href = "index.html";
-            } else {
-                const adminContent = document.getElementById('admin-content');
-                if (adminContent) {
-                    adminContent.classList.remove('hidden');
-                    adminContent.style.display = "grid";
-                }
-
-                const emailDisplay = document.getElementById('admin-email-display');
-                if (emailDisplay) {
-                    emailDisplay.innerText = user.email;
-                }
-
-                loadDashboardData();
-            }
-        });
-
-        function loadDashboardData() {
-            // 1. Pending Requests (Fetches all documents in pendingListings)
-            const qPending = query(collection(db, "pendingListings"));
-            onSnapshot(qPending, (snapshot) => {
-                const list = document.getElementById('pending-list');
-                const pendingStat = document.getElementById('stat-pending');
-
-                if (pendingStat) pendingStat.innerText = snapshot.size;
-                if (!list) return;
-
-                if (snapshot.empty) {
-                    list.innerHTML = `<div style="text-align:center; padding:20px; color:#999; border:2px dashed #ddd; border-radius:15px;">ไม่มีรายการรอการตรวจสอบ</div>`;
-                    return;
-                }
-
-                list.innerHTML = "";
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const name = escapeHTML(data.name || 'Untitled');
-                    const zone = escapeHTML(data.zone || '-');
-                    const priceDisplay = escapeHTML(data.priceDisplay || '-');
-
-                    list.innerHTML += `
-                        <div class="dorm-card">
-                            <div class="dorm-info">
-                                <h3>
-                                    <a href="details.html?id=${docSnap.id}" target="_blank" class="dorm-link">
-                                        ${name} 🔗
-                                    </a>
-                                </h3>
-                                <p>โซน: ${zone}</p>
-                                <p>ราคา: ${priceDisplay}</p>
-                            </div>
-                            <div class="action-btns">
-                                <a href="details.html?id=${docSnap.id}" target="_blank" class="btn-action btn-preview">ดูตัวอย่าง</a>
-                                <button class="btn-action btn-approve" onclick="approveDorm('${docSnap.id}')">อนุมัติ</button>
-                                <button class="btn-action btn-reject" onclick="rejectPending('${docSnap.id}')">ปฏิเสธ</button>
-                            </div>
-                        </div>`;
-                });
-            });
-
-            // 2. Main Dorm List & Total Views Calculation
-            const qAllDorms = query(collection(db, "listings"));
-            onSnapshot(qAllDorms, (snapshot) => {
-                const tableBody = document.getElementById('approved-table');
-                const hotTableBody = document.getElementById('hot-listings-table');
-                const totalStat = document.getElementById('stat-total');
-                const viewsStat = document.getElementById('stat-views');
-
-                if (totalStat) totalStat.innerText = snapshot.size;
-                if (!tableBody) return;
-
-                tableBody.innerHTML = "";
-                let totalViews = 0;
-                let dormList = [];
-
-                if (snapshot.empty) {
-                    tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No dorms found.</td></tr>";
-                    if (hotTableBody) hotTableBody.innerHTML = "<tr><td colspan='2' style='text-align:center;'>ไม่มีข้อมูลการคลิกเข้าชม</td></tr>";
-                    if (viewsStat) viewsStat.innerText = "0";
-                    return;
-                }
-
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const name = escapeHTML(data.name || 'Untitled');
-                    const zone = escapeHTML(data.zone || '-');
-                    const priceDisplay = escapeHTML(data.priceDisplay || '-');
-
-                    // Check common view field variants and prevent NaN issues
-                    const rawViews = data.clickCount ?? data.views ?? data.viewCount ?? data.clicks ?? 0;
-                    const parsedViews = Number(rawViews);
-                    const clickCount = isNaN(parsedViews) ? 0 : parsedViews;
-
-                    totalViews += clickCount;
-                    dormList.push({ id: docSnap.id, name, clickCount });
-
-                    tableBody.innerHTML += `
-                        <tr>
-                            <td style="font-weight:500;">
-                                <a href="details.html?id=${docSnap.id}" target="_blank" class="dorm-link">
-                                    ${name}
-                                </a>
-                            </td>
-                            <td>${zone}</td>
-                            <td>${priceDisplay}</td>
-                            <td>
-                                <button class="icon-btn" onclick="deleteDorm('${docSnap.id}')" title="Delete">🗑️</button>
-                            </td>
-                        </tr>`;
-                });
-
-                if (viewsStat) viewsStat.innerText = totalViews.toLocaleString();
-
-                // Hot Listings logic
-                if (hotTableBody) {
-                    const rankedDorms = dormList
-                        .filter(dorm => dorm.clickCount > 0)
-                        .sort((a, b) => b.clickCount - a.clickCount);
-
-                    if (rankedDorms.length === 0) {
-                        hotTableBody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999; padding:15px;'>ยังไม่มีข้อมูลการคลิกเข้าชม</td></tr>";
-                    } else {
-                        hotTableBody.innerHTML = "";
-                        rankedDorms.forEach((dorm) => {
-                            hotTableBody.innerHTML += `
-                                <tr>
-                                    <td style="font-weight:500;">
-                                        <a href="details.html?id=${dorm.id}" target="_blank" class="dorm-link">
-                                            ${dorm.name}
-                                        </a>
-                                    </td>
-                                    <td><span style="color: #e53e3e; font-weight: bold;">🔥 ${dorm.clickCount.toLocaleString()}</span> ครั้ง</td>
-                                </tr>`;
-                        });
-                    }
-                }
-            });
-
-            // 3. User Reports
-            const qReports = query(collection(db, "reports"));
-            onSnapshot(qReports, (snapshot) => {
-                const reportBody = document.getElementById('report-table-body');
-                if (!reportBody) return;
-
-                if (snapshot.empty) {
-                    reportBody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999; padding:20px;'>ไม่มีรายงานใหม่</td></tr>";
-                    return;
-                }
-
-                reportBody.innerHTML = "";
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const dName = escapeHTML(data.dormName || 'ไม่ระบุชื่อหอพัก');
-                    const rText = escapeHTML(data.reportText || 'ไม่มีรายละเอียด');
-                    const uEmail = escapeHTML(data.userEmail || 'ไม่ระบุอีเมล');
-                    const dormId = data.dormId ? data.dormId : '';
-
-                    reportBody.innerHTML += `
-                        <tr>
-                            <td style="padding: 12px; border-bottom: 1px solid #eee;">
-                                <div style="font-weight: bold; color: var(--purple); font-size: 14px;">
-                                    🏢 ${dormId ? `<a href="details.html?id=${dormId}" target="_blank" class="dorm-link" style="color:var(--purple);">${dName} 🔗</a>` : dName}
-                                </div>
-                                <div style="color: #444; font-size: 13px; margin-top: 4px; line-height: 1.4;">
-                                    📝 ${rText}
-                                </div>
-                                <div style="font-size: 10px; color: #aaa; margin-top: 5px;">
-                                    จาก: ${uEmail}
-                                </div>
-                            </td>
-                            <td style="text-align: center; border-bottom: 1px solid #eee;">
-                                <button class="icon-btn" onclick="deleteReport('${docSnap.id}')" title="Mark as Fixed" style="font-size: 20px;">
-                                    ✅
-                                </button>
-                            </td>
-                        </tr>`;
-                });
-            }, (error) => {
-                console.error("Firestore Reports Fetch Error:", error);
-                const reportBody = document.getElementById('report-table-body');
-                if (reportBody) {
-                    reportBody.innerHTML = `<tr><td colspan='2' style='text-align:center; color:red; padding:20px;'>Error: ${escapeHTML(error.message)}</td></tr>`;
-                }
-            });
-        }
-
-        // Logout listener
-        const btnLogout = document.getElementById('btn-logout');
-        if (btnLogout) {
-            btnLogout.onclick = async () => {
-                try {
-                    await signOut(auth);
-                    window.location.href = "index.html";
-                } catch (error) {
-                    console.error("Logout Error:", error);
-                }
-            };
-        }
-    </script>
-</body>
-
-</html>
+      }
+    });
+  });
+  onSnapshot(collection(db, "reports"), snap => {
+    const all = snap.docs.map(x => ({ id: x.id, ...x.data() })), isDone = d => d.status === 'resolved';
+    const open = all.filter(d => !isDone(d)), done = all.filter(isDone);
+    reportN = open.length; $('stat-reports').textContent = open.length; updateBadge();
+    const row = d => { const fin = isDone(d), isNew = !fin && ms(d.timestamp ?? d.createdAt) > seen;
+      return `<tr style="${fin ? 'opacity:.7' : ''}"><td><b style="color:var(--p)">🏢 ${d.dormId ? `<a class="l" target="_blank" href="details.html?id=${esc(d.dormId)}">${esc(d.dormName)}</a>` : esc(d.dormName)}</b>${isNew ? '<span class="tag-new">ใหม่</span>' : ''}${fin ? '<span class="tag-done">แก้ไขแล้ว</span>' : '<span class="tag-wait">รอแก้ไข</span>'}
+      <div style="font-size:13px;margin-top:3px">${esc(d.reportText)}</div><small style="color:#94a3b8">จาก: ${esc(d.userEmail)}</small></td>
+      <td style="text-align:center;white-space:nowrap">${fin ? `<button class="b v" onclick="reopenReport('${d.id}')">เปิดใหม่</button> <button class="b no" onclick="deleteReport('${d.id}')">ลบ</button>`
+        : `<button class="b rs" onclick="resolveReport('${d.id}')">ทำเครื่องหมายว่า<br>แก้ไขแล้ว</button>`}</td></tr>`; };
+    $('report-table-body').innerHTML = (open.map(row).join('') || '<tr><td class="empty">ไม่มีรายงานที่รอแก้ไข 🎉</td></tr>')
+      + (done.length ? `<tr><td colspan="2" style="padding:14px 8px 4px;color:#64748b;font-size:13px;font-weight:500">แก้ไขแล้ว (${done.length})</td></tr>` + done.map(row).join('') : '');
+  }, e => { $('report-table-body').innerHTML = `<tr><td style="color:red">Error: ${esc(e.message)}</td></tr>`; });
+}
+$('btn-logout').onclick = async () => { await signOut(auth); location.href = 'index.html'; };
+</script></body></html>

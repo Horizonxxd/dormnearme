@@ -303,6 +303,15 @@
             }
         }
     </style>
+<script src="ui-kit.js"></script>
+<style>
+.room-list{margin:8px 0;display:flex;flex-direction:column;gap:6px}
+.room-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#f8fafc;border:1px solid #eef2f7;border-radius:10px;padding:8px 10px}
+.room-name{font-weight:600;color:#1e293b;font-size:14px}.room-spec{font-size:12px;color:#64748b;margin-top:2px}
+.room-price{color:var(--purple);font-weight:700;white-space:nowrap}.room-price small{font-weight:400;color:#64748b;font-size:12px}
+.tier{font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;color:#fff}.tier.premium{background:#f59e0b}.tier.basic{background:#64748b}
+.match-badge{background:#dcfce7;color:#166534;border-radius:10px;padding:2px 10px;font-size:12px;margin-left:6px}
+</style>
 </head>
 
 <body>
@@ -316,6 +325,7 @@
             <a href="index.html" class="nav-item">ค้นหาหอพัก</a>
             <a href="add-info.html" class="nav-item">เพิ่มข้อมูล</a>
             <a href="map.html" class="nav-item">แผนที่</a>
+            <a href="dashboard.html" class="nav-item">สถิติ</a>
             <a href="contact.html" class="nav-item">ติดต่อเรา</a>
         </div>
 
@@ -381,6 +391,10 @@
 
             <div class="filter-group">
                 <label>สิ่งอำนวยความสะดวก</label>
+                <select id="amenMode" style="margin-bottom:10px;font-size:14px">
+                    <option value="all">ต้องมีครบทุกอย่างที่เลือก</option>
+                    <option value="any">มีบางส่วนก็ได้ (เรียงตามที่ตรงมากสุด)</option>
+                </select>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                     <label style="font-weight:normal;"><input type="checkbox" class="amen-check" value="air">
                         แอร์</label>
@@ -452,6 +466,7 @@
 
     <script type="module">
         import { initAuth, db } from './auth.js';
+        const amenMode = document.getElementById('amenMode');
         import { collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         initAuth();
@@ -554,6 +569,21 @@ poiMap.forEach(item => {
             }
         };
 
+        const AMEN_TH = { air:'แอร์', microwave:'ไมโครเวฟ', fan:'พัดลม', fridge:'ตู้เย็น', waterheater:'เครื่องทำน้ำอุ่น', desk:'โต๊ะเขียนหนังสือ', wardrobe:'ตู้เสื้อผ้า', tv:'ทีวี', pantry:'ตู้กับข้าว' };
+        const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+        // แสดงรายการห้อง/ราคาแยกประเภท พร้อมหน่วย "บาท/เดือน"
+        function renderPrice(d) {
+            const rooms = Array.isArray(d.rooms) ? d.rooms.filter(r => r && r.price) : [];
+            if (!rooms.length) return `<div class="price-tag">เริ่มต้น ${Number(d.priceMin || 0).toLocaleString()} <small style="font-size:13px;font-weight:400">บาท/เดือน</small></div>`;
+            rooms.sort((a, b) => a.price - b.price);
+            return `<div class="room-list">${rooms.map(r => {
+                const spec = [r.size ? `📐 ${esc(r.size)} ตร.ม.` : '', r.bed ? `🛏️ ${esc(r.bed)}` : '', r.cooling ? `❄️ ${esc(r.cooling)}` : ''].filter(Boolean).join(' · ');
+                const tier = r.tier ? `<span class="tier ${r.tier === 'premium' ? 'premium' : 'basic'}">${r.tier === 'premium' ? 'Premium' : 'Basic'}</span>` : '';
+                return `<div class="room-row"><div><div class="room-name">${esc(r.name || 'ห้องพัก')}${tier}</div><div class="room-spec">${spec || '&nbsp;'}</div></div><div class="room-price">${Number(r.price).toLocaleString()} <small>บาท/เดือน</small></div></div>`;
+            }).join('')}</div>`;
+        }
+
         async function fetchDorms() {
             const listDiv = document.getElementById('results-list');
             const qRef = collection(db, "listings");
@@ -578,21 +608,13 @@ poiMap.forEach(item => {
                     if (data.priceMin > Number(fPrice.value)) return;
                     if (data.distance > Number(fDist.value)) return;
 
-                    const selectedAmens = Array.from(document.querySelectorAll('.amen-check:checked')).map(c => c.value);
+                    const selectedAmens = Array.from(document.querySelectorAll('.amen-check:checked')).map(c => AMEN_TH[c.value]);
                     if (selectedAmens.length > 0) {
-                        const map = { 
-                            'air': 'แอร์', 
-                            'microwave': 'ไมโครเวฟ', 
-                            'fan': 'พัดลม', 
-                            'fridge': 'ตู้เย็น',
-                            'waterheater': 'เครื่องทำน้ำอุ่น',
-                            'desk': 'โต๊ะ',
-                            'wardrobe': 'ตู้เสื้อผ้า',
-                            'tv': 'ทีวี',
-                            'pantry': 'ตู้กับข้าว'
-                        };
-                        const hasAll = selectedAmens.every(a => (data.amenities || []).includes(map[a]));
-                        if (!hasAll) return;
+                        // นับจำนวนที่ตรง (ผ่าน normAmen ทำให้ "โต๊ะ" = "โต๊ะเขียนหนังสือ")
+                        data._match = countAmenMatch(data.amenities, selectedAmens);
+                        data._need = selectedAmens.length;
+                        if (amenMode.value === 'all' && data._match < selectedAmens.length) return;
+                        if (amenMode.value === 'any' && data._match === 0) return;
                     }
 
                     const distances = data.distances || {};
@@ -618,6 +640,7 @@ poiMap.forEach(item => {
                 });
 
                 const sortType = sortResults.value;
+                if (amenMode.value === 'any' && sortType === 'default') validDorms.sort((a, b) => (b._match || 0) - (a._match || 0));
                 if (sortType === "priceLowHigh") {
                     validDorms.sort((a, b) => (a.priceMin || 0) - (b.priceMin || 0));
                 } else if (sortType === "priceHighLow") {
@@ -635,13 +658,13 @@ poiMap.forEach(item => {
                     <img src="${firstImageUrl}" onerror="this.src='https://via.placeholder.com/250x170'" class="dorm-img">
                     <div class="dorm-info">
                         <div>
-                            <h3 style="margin:0 0 5px 0; color:#333;">${data.name}</h3>
+                            <h3 style="margin:0 0 5px 0; color:#333;">${esc(data.name)}${data._need ? `<span class="match-badge">ตรง ${data._match}/${data._need}</span>` : ''}</h3>
                             <p style="margin:0; font-size:14px; color:#666;">📍 ${data.zone} | 👣 ${data.distance} ม.</p>
                             <div style="margin: 12px 0;">
                                 ${(data.amenities || []).map(a => `<span class="tag-small">${a}</span>`).join('')}
                             </div>
                         </div>
-                        <div class="price-tag">฿${(data.priceMin || 0).toLocaleString()}</div>
+                        ${renderPrice(data)}
                     </div>
                 </a>`;
                 });
@@ -675,6 +698,7 @@ poiMap.forEach(item => {
         });
 
         sortResults.addEventListener('change', fetchDorms);
+        amenMode.addEventListener('change', fetchDorms);
 
         [fName, fZone, fPrice, fDist].forEach(el => {
             el.addEventListener('input', () => {

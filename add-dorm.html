@@ -303,7 +303,19 @@
             cursor: pointer;
             line-height: 1;
         }
+        /* ตรวจสอบความครบถ้วนของข้อมูล โดยคงรูปแบบหน้าเดิม */
+        .field-feedback {display:block; color:#dc2626; font-size:12px; line-height:1.55; margin-top:4px;}
+        .field-feedback[hidden] {display:none;}
+        .form-input.is-invalid, .multi-select-list.is-invalid, .checkbox-block.is-invalid,
+        .upload-group.is-invalid .btn-large-upload {border:1px solid #fca5a5;}
+        .form-status {font-size:12px; color:#92400e; background:#fffbeb; border:1px solid #fde68a;
+            padding:10px 12px; border-radius:9px; line-height:1.65; margin-top:14px;}
+        .form-status.is-complete {color:#166534; background:#f0fdf4; border-color:#bbf7d0;}
+        .form-status strong {font-weight:500;}
+        .form-status .missing-list {margin:4px 0 0; padding-left:18px;}
     </style>
+<script src="ui-kit.js"></script>
+
 </head>
 
 <body>
@@ -314,6 +326,7 @@
             <a href="index.html" class="nav-item">ค้นหาหอพัก</a>
             <a href="add-dorm.html" class="nav-item active">เพิ่มข้อมูล</a>
             <a href="map.html" class="nav-item">แผนที่</a>
+            <a href="dashboard.html" class="nav-item">สถิติ</a>
             <a href="contact.html" class="nav-item">ติดต่อเรา</a>
         </div>
 
@@ -342,7 +355,7 @@
     <div class="container">
         <div class="form-grid">
             <div class="form-column">
-                <div class="form-group">
+                <div class="form-group upload-group" id="upload-group">
                     <label class="form-label">Upload (สูงสุด 10 รูป)</label>
                     <input type="file" id="actual-upload" accept="image/*" multiple style="display: none;">
                     <button type="button" class="btn-large-upload"
@@ -421,9 +434,9 @@
             <div class="form-column">
                 <div class="form-group">
                     <label class="form-label">เบอร์โทร</label>
-                    <input type="text" id="phone-input" class="form-input" placeholder="0812345678" maxlength="10">
+                    <input type="text" id="phone-input" class="form-input" placeholder="0812345678 หรือ 021234567" maxlength="10" inputmode="numeric">
                     <small id="phone-error"
-                        style="color: #ef4444; display: none; margin-top: 4px;">กรุณากรอกตัวเลขให้ครบ 10 หลัก</small>
+                        style="color: #ef4444; display: none; margin-top: 4px;"></small>
                 </div>
 
                 <div class="form-group">
@@ -437,14 +450,15 @@
                         placeholder="เช่น ห้ามเลี้ยงสัตว์"></textarea>
                 </div>
 
-                <button class="btn-purple" id="save-btn">บันทึกข้อมูล</button>
+                <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
+                <button class="btn-purple" id="save-btn" type="button" disabled>บันทึกข้อมูล</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { app, initAuth } from './auth.js';
-        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, GeoPoint } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-functions.js";
@@ -459,27 +473,129 @@
 
         initAuth();
 
+        if (!window.showToast) { console.error('ไม่พบ ui-kit.js — ใช้ popup สำรองของเบราว์เซอร์'); window.showToast = m => window.alert(m); window.confirmBox = async m => window.confirm(m); }
+        // แทน alert() ทั้งหน้าด้วย Toast กลางจอ
+        const alert = (m) => showToast(m, /เรียบร้อย/.test(m) ? 'success' : 'error', 2200);
+
         let selectedFiles = [];
         const actualBtn = document.getElementById('actual-upload');
         const previewGallery = document.getElementById('preview-gallery');
         const phoneInput = document.getElementById('phone-input');
         const phoneError = document.getElementById('phone-error');
 
-        // Phone input helper check
-        phoneInput.addEventListener('input', () => {
-            const cleaned = phoneInput.value.replace(/\D/g, '');
-            phoneInput.value = cleaned;
-            if (cleaned.length > 0 && cleaned.length !== 10) {
-                phoneError.style.display = 'block';
-            } else {
-                phoneError.style.display = 'none';
+        const saveBtn = document.getElementById('save-btn');
+        const statusEl = document.getElementById('form-status');
+        let isSaving = false;
+
+        // รับเบอร์มือถือไทย 10 หลัก หรือเบอร์โทรศัพท์พื้นฐาน 9-10 หลัก
+        function validateThaiPhone(value) {
+            const phone = String(value ?? '').trim();
+            if (!phone) return { ok: false, msg: 'กรุณากรอกเบอร์โทรศัพท์' };
+            if (!/^\d+$/.test(phone)) return { ok: false, msg: 'เบอร์โทรต้องเป็นตัวเลขเท่านั้น' };
+            if (/^0[689]\d{8}$/.test(phone) || /^0[2-7]\d{7,8}$/.test(phone)) {
+                return { ok: true, msg: '' };
             }
+            return { ok: false, msg: 'กรุณากรอกเบอร์โทรไทยที่ถูกต้อง (9–10 หลัก)' };
+        }
+
+        const fieldChecks = [
+            { id: 'images', label: 'รูปภาพหอพัก', target: 'upload-group',
+              check: () => selectedFiles.length >= 1 && selectedFiles.length <= 10,
+              message: 'กรุณาอัปโหลดรูปภาพอย่างน้อย 1 รูป (สูงสุด 10 รูป)' },
+            { id: 'name', label: 'ชื่อหอพัก', target: 'dorm-name',
+              check: () => !!document.getElementById('dorm-name').value.trim(), message: 'กรุณากรอกชื่อหอพัก' },
+            { id: 'details', label: 'รายละเอียด', target: 'dorm-details',
+              check: () => !!document.getElementById('dorm-details').value.trim(), message: 'กรุณากรอกรายละเอียดหอพัก' },
+            { id: 'map', label: 'ลิงก์ Google Maps', target: 'dorm-map-url',
+              check: () => {
+                const v = document.getElementById('dorm-map-url').value.trim();
+                if (!v) return false;
+                if (/^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(v)) {
+                    const [lat, lng] = v.split(',').map(Number);
+                    return Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+                }
+                try { const u = new URL(v); return u.protocol === 'https:' &&
+                    (u.hostname === 'maps.app.goo.gl' || u.hostname === 'goo.gl' ||
+                     u.hostname === 'google.com' || u.hostname.endsWith('.google.com') ||
+                     u.hostname === 'google.co.th' || u.hostname.endsWith('.google.co.th')); }
+                catch { return false; }
+              }, message: 'กรุณาใส่ลิงก์ Google Maps ที่ถูกต้อง' },
+            { id: 'amenities', label: 'สิ่งอำนวยความสะดวก', target: 'room-amenities',
+              check: () => !!document.querySelector('#room-amenities input:checked'),
+              message: 'กรุณาเลือกสิ่งอำนวยความสะดวกอย่างน้อย 1 รายการ' },
+            { id: 'type', label: 'ประเภทหอพัก', target: 'dorm-type',
+              check: () => !!document.querySelector('input[name="dtype"]:checked'),
+              message: 'กรุณาเลือกประเภทหอพัก' },
+            { id: 'zone', label: 'โซนที่พักอาศัย', target: 'dorm-zone',
+              check: () => !!document.querySelector('input[name="dzone"]:checked'),
+              message: 'กรุณาเลือกโซนที่พักอาศัย' },
+            { id: 'phone', label: 'เบอร์โทร', target: 'phone-input',
+              check: () => validateThaiPhone(phoneInput.value).ok,
+              message: () => validateThaiPhone(phoneInput.value).msg },
+            { id: 'price', label: 'ราคาเช่า', target: 'dorm-price',
+              check: () => { const v = document.getElementById('dorm-price').value.trim();
+                return v !== '' && Number.isFinite(Number(v)) && Number(v) > 0; },
+              message: 'กรุณากรอกราคาเช่ามากกว่า 0 บาท' },
+            { id: 'rules', label: 'กฎของหอพัก', target: 'dorm-rules',
+              check: () => !!document.getElementById('dorm-rules').value.trim(),
+              message: 'กรุณากรอกกฎของหอพัก (ถ้าไม่มี ระบุว่า ไม่มีกฎเพิ่มเติม)' }
+        ];
+
+        // แสดงจุดที่ยังขาดใต้แต่ละช่อง พร้อมสรุปภาพรวมโดยไม่เปิดปุ่มบันทึกก่อนครบ
+        function updateFormValidation() {
+            const missing = [];
+            for (const field of fieldChecks) {
+                const target = document.getElementById(field.target);
+                const valid = field.check();
+                const message = typeof field.message === 'function' ? field.message() : field.message;
+                let feedback = document.getElementById('feedback-' + field.id);
+                if (!feedback) {
+                    feedback = document.createElement('small');
+                    feedback.id = 'feedback-' + field.id;
+                    feedback.className = 'field-feedback';
+                    const container = target.closest('.form-group') || target.parentElement;
+                    container.appendChild(feedback);
+                }
+                feedback.textContent = valid ? '' : message;
+                feedback.hidden = valid;
+                target.classList.toggle('is-invalid', !valid);
+                if (!valid) missing.push(field.label);
+            }
+            // ตรวจสอบการเข้าสู่ระบบด้วย เพื่อป้องกันการบันทึกโดยไม่ได้ล็อกอิน
+            const loggedIn = !!auth.currentUser;
+            const complete = missing.length === 0 && loggedIn;
+            saveBtn.disabled = isSaving || !complete;
+            statusEl.classList.toggle('is-complete', complete);
+            if (complete) {
+                statusEl.textContent = '✓ ข้อมูลครบทุกช่อง สามารถกดบันทึกข้อมูลได้';
+            } else {
+                const pieces = [];
+                if (missing.length) pieces.push(`กรุณากรอกข้อมูลอีก ${missing.length} จุด: ${missing.join(' • ')}`);
+                if (!loggedIn) pieces.push('กรุณาเข้าสู่ระบบด้วย Google');
+                statusEl.textContent = pieces.join(' | ');
+            }
+            return complete;
+        }
+
+        phoneInput.addEventListener('input', () => {
+            phoneInput.value = phoneInput.value.replace(/\D/g, '');
+            phoneError.style.display = 'none'; // ข้อความตรวจสอบรวมแสดงใต้ช่องเดียวกัน
+            updateFormValidation();
         });
+        document.querySelectorAll('.form-input').forEach(el => {
+            if (el !== phoneInput) el.addEventListener('input', updateFormValidation);
+        });
+        document.querySelectorAll('#room-amenities input, input[name="dtype"], input[name="dzone"]').forEach(el => {
+            el.addEventListener('change', updateFormValidation);
+        });
+        // อัปเดตสถานะเมื่อผู้ใช้ล็อกอิน/ล็อกเอาต์
+        onAuthStateChanged(auth, updateFormValidation);
 
         actualBtn.addEventListener('change', function () {
             const newFiles = Array.from(this.files);
             selectedFiles = [...selectedFiles, ...newFiles].slice(0, 10);
             renderPreviews();
+            updateFormValidation();
         });
 
         function renderPreviews() {
@@ -499,6 +615,7 @@
                         evt.preventDefault();
                         selectedFiles.splice(index, 1);
                         renderPreviews();
+                        updateFormValidation();
                     };
                 };
                 reader.readAsDataURL(file);
@@ -507,6 +624,8 @@
                 ? `เลือกแล้ว ${selectedFiles.length} / 10 รูป`
                 : '';
         }
+
+        updateFormValidation();
 
         // -------------------------------------------------------------
         // GEOLOCATION & DISTANCE CALCULATOR FUNCTIONS
@@ -776,7 +895,7 @@ async function calculatePOIDistances(dormLat, dormLng) {
         // FORM SUBMISSION HANDLER
         // -------------------------------------------------------------
         document.getElementById('save-btn').onclick = async function () {
-            const saveBtn = document.getElementById('save-btn');
+            if (isSaving || !updateFormValidation()) return;
             const phone = phoneInput.value.trim();
             const dormName = document.getElementById('dorm-name').value.trim();
             const mapUrl = document.getElementById('dorm-map-url').value.trim();
@@ -795,6 +914,11 @@ async function calculatePOIDistances(dormLat, dormLng) {
                 return;
             }
 
+            const pc = validateThaiPhone(phone);
+            if (!pc.ok) { alert("เบอร์โทรไม่ถูกต้อง: " + pc.msg); return; }
+            if (!await confirmBox('ยืนยันการส่งข้อมูลหอพัก "' + dormName + '" เพื่อรอแอดมินตรวจสอบ?')) return;
+
+            isSaving = true;
             saveBtn.disabled = true;
 
             // 1. Try extracting coordinates directly. If missing, resolve via Cloud Function for ANY URL.
@@ -813,21 +937,25 @@ async function calculatePOIDistances(dormLat, dormLng) {
 
             if (!coords) {
                 alert("ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ได้ กรุณาตรวจสอบลิงก์อีกครั้ง");
-                saveBtn.disabled = false;
+                isSaving = false;
                 saveBtn.innerText = "บันทึกข้อมูล";
+                updateFormValidation();
                 return;
             }
 
-            if (phone.length !== 10) {
-                alert("กรุณากรอกเบอร์โทรให้ครบ 10 หลัก");
-                saveBtn.disabled = false;
+            const phoneCheck = validateThaiPhone(phone);
+            if (!phoneCheck.ok) {
+                alert("เบอร์โทรไม่ถูกต้อง: " + phoneCheck.msg);
+                isSaving = false;
                 saveBtn.innerText = "บันทึกข้อมูล";
+                updateFormValidation();
                 return;
             }
             if (selectedFiles.length === 0) {
                 alert("กรุณาอัปโหลดรูปภาพอย่างน้อย 1 รูป");
-                saveBtn.disabled = false;
+                isSaving = false;
                 saveBtn.innerText = "บันทึกข้อมูล";
+                updateFormValidation();
                 return;
             }
 
@@ -875,8 +1003,8 @@ async function calculatePOIDistances(dormLat, dormLng) {
                     mapUrl: mapUrl,
                     location: new GeoPoint(coords.lat, coords.lng),
                     status: "pending",
-                    price: Number(document.getElementById('dorm-price').value) || 0,
-                    priceMin: Number(document.getElementById('dorm-price').value) || 0,
+                    price: priceValue,
+                    priceMin: priceValue,
                     distance: calculatedDistances.busStop ?? 0,
                     phone: phone,
                     rules: document.getElementById('dorm-rules').value.trim(),
@@ -898,12 +1026,13 @@ async function calculatePOIDistances(dormLat, dormLng) {
                     ? `\nMCDM Score = ${(Math.round(saw.score * 1000) / 10).toFixed(1)}`
                     : `\n(ไม่นำมาจัดอันดับ SAW: ${saw.reason})`;
                 alert("ส่งข้อมูลเรียบร้อยแล้ว! ข้อมูลจะถูกตรวจสอบโดย Admin ก่อนแสดงบนเว็บไซต์ 🎉" + sawMsg);
-                window.location.href = "index.html";
+                setTimeout(() => window.location.href = "index.html", 2300);
             } catch (e) {
                 console.error("Submission failed: ", e);
                 alert("เกิดข้อผิดพลาด: " + e.message);
-                saveBtn.disabled = false;
+                isSaving = false;
                 saveBtn.innerText = "บันทึกข้อมูล";
+                updateFormValidation();
             }
         };
     </script>

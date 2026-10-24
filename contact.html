@@ -274,6 +274,7 @@
             }
         }
     </style>
+    <script src="ui-kit.js"></script>
 </head>
 
 <body>
@@ -288,6 +289,7 @@
             <a href="add-info.html" class="nav-item">เพิ่มข้อมูล</a>
             <a href="map.html" class="nav-item">แผนที่</a>
             <a href="contact.html" class="nav-item active">ติดต่อเรา</a>
+            <a href="dashboard.html" class="nav-item">สถิติ</a>
         </div>
 
         <div id="auth-section">
@@ -343,6 +345,7 @@
         import { auth, db, initAuth } from './auth.js';
         import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        if (!window.showToast) { window.showToast = m => window.alert(m); }
         initAuth();
 
         // Modal Elements
@@ -367,7 +370,7 @@
             const description = document.getElementById('reportDescription').value.trim();
 
             if (!dormName || !description) {
-                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+                showToast("กรุณากรอกข้อมูลให้ครบถ้วน", "warn");
                 return;
             }
 
@@ -376,10 +379,11 @@
                     userEmail: auth.currentUser ? auth.currentUser.email : "Anonymous",
                     dormName: dormName,
                     reportText: description,
+                    status: "pending",
                     timestamp: serverTimestamp()
                 });
 
-                alert("ส่งข้อมูลเรียบร้อยแล้ว ขอบคุณที่ช่วยแจ้งเราครับ!");
+                showToast("ส่งข้อมูลเรียบร้อยแล้ว\nขอบคุณที่ช่วยแจ้งเราครับ!", "success", 2200);
 
                 // Clear inputs and close
                 document.getElementById('reportDormName').value = "";
@@ -388,7 +392,7 @@
 
             } catch (error) {
                 console.error("Error submitting report:", error);
-                alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+                showToast("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", "error");
             }
         };
 
