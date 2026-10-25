@@ -49,6 +49,10 @@ h1{margin:0;font-size:26px}.live{display:inline-flex;align-items:center;gap:6px;
 .c1.best,.c2.best,.c3.best,.c4.best{box-shadow:0 6px 18px rgba(0,0,0,.1)}
 @media(max-width:860px){.bks{grid-template-columns:1fr 1fr}.two,.tiles{grid-template-columns:1fr}.pod{grid-template-columns:1fr}.pod .r1{order:-1}}
 @media(max-width:520px){.bks{grid-template-columns:1fr}}
+/* Keep the original dashboard navigation left-aligned; place injected bell at far right. */
+nav { justify-content: flex-start; align-items: center; }
+nav > a { order: 0; }
+nav > #dnm-owner-bell { order: 1; margin-left: auto !important; margin-right: 0 !important; }
 </style></head><body>
 <div class="top-banner">ข้อมูลรวบรวมจาก Facebook และ Google Maps โปรดตรวจสอบรายละเอียดกับผู้ให้บริการที่พักก่อนตัดสินใจ</div>
 <nav><a href="index.html">ค้นหาหอพัก</a><a href="add-info.html">เพิ่มข้อมูล</a><a href="map.html">แผนที่</a><a href="dashboard.html" class="on">สถิติ</a><a href="contact.html">ติดต่อเรา</a></nav>
@@ -132,151 +136,79 @@ html += sec(1, 'หอพักที่ได้รับการเข้า�
     + (near.length ? `<div class="pod">${pc(near[1], 'r2', '🥈')}${pc(near[0], 'r1', '🥇')}${pc(near[2], 'r3', '🥉')}</div>` : '')
     + near.slice(3).map((x, i) => `<div class="row"><div class="no">${i + 4}</div><div class="in">${link(x.d)}<div>${chips(x)}</div></div><div class="rt">${sub(x)}</div></div>`).join(''));
 
-// 3) ฝั่งไหนคนสนใจมากกว่า
+// 3) จำนวนหอพักในแต่ละโซน (แสดงจำนวนจริง ไม่ใช้เปอร์เซ็นต์)
 const Z = {};
 
 L.forEach(d => {
   const k = String(d.zone || '').trim();
-
-  // แสดงเฉพาะสองฝั่ง ไม่รวม "ไม่ระบุ"
   if (k !== 'ฝั่งมอ' && k !== 'ฝั่งตรงข้ามมอ') return;
-
-  (Z[k] ??= { n: 0, c: 0, ps: [] });
-
+  (Z[k] ??= { n: 0, ps: [] });
   Z[k].n++;
-  Z[k].c += clicks(d);
-
   if (price(d)) Z[k].ps.push(price(d));
 });
 
-// เรียงตามจำนวนครั้งที่เปิดดู
-const zs = Object.entries(Z)
-  .sort((a, b) => b[1].c - a[1].c);
-
-// คำนวณยอดเปิดดูเฉพาะสองฝั่ง
-const zoneTotal = zs.reduce((sum, [, v]) => sum + v.c, 0);
-
-const zcls = k =>
-  k === 'ฝั่งมอ' ? 'A' : 'B';
+// แสดงทั้งสองฝั่ง แม้ฝั่งใดฝั่งหนึ่งยังไม่มีรายการ
+const zones = ['ฝั่งตรงข้ามมอ', 'ฝั่งมอ'];
+const zs = zones.map(k => [k, Z[k] || { n: 0, ps: [] }]);
+const zoneCount = zs.reduce((sum, [, v]) => sum + v.n, 0);
+const zcls = k => k === 'ฝั่งมอ' ? 'A' : 'B';
 
 html += sec(
   2,
-  'เปรียบเทียบความสนใจตามโซนที่พัก',
-  'แสดงสัดส่วนค้นหาโซนที่พัก จำนวนหอพัก และราคาเริ่มต้นเฉลี่ยของแต่ละโซน',
-
-  zs.length && zoneTotal
-    ? `โซน <b>${esc(zs[0][0])}</b> มีจำนวนการค้นหารายละเอียดมากที่สุด
-       คิดเป็น <b>${Math.round(zs[0][1].c / zoneTotal * 100)}%</b>
-       ของยอดค้นหารายละเอียดจากสองโซนที่ระบุ`
-    : 'ยังไม่มีข้อมูลยอดค้นหารายละเอียด',
-
+  'จำนวนหอพักแยกตามโซน',
+  'แสดงจำนวนหอพักในระบบและราคาเริ่มต้นเฉลี่ยของแต่ละฝั่ง',
+  zoneCount
+    ? `ในระบบมีหอพักฝั่งตรงข้ามมอ <b>${fmt(zs[0][1].n)} แห่ง</b> และฝั่งมอ <b>${fmt(zs[1][1].n)} แห่ง</b>`
+    : 'ยังไม่มีข้อมูลหอพักที่ระบุโซน',
   `<div class="two">
     ${zs.map(([k, v]) => {
-
-      const pc = zoneTotal
-        ? Math.round(v.c / zoneTotal * 100)
-        : 0;
-
       const avg = v.ps.length
-        ? Math.round(
-            v.ps.reduce((a, b) => a + b, 0) / v.ps.length
-          )
+        ? Math.round(v.ps.reduce((a, b) => a + b, 0) / v.ps.length)
         : 0;
-
       return `
         <div class="zc ${zcls(k)}">
           <div class="nm">${esc(k)}</div>
-
-          <div class="pc">${pc}%</div>
-
-          <div class="meter">
-            <i style="width:${pc}%"></i>
-          </div>
-
-          <small>
-            ${v.n} หอพัก · ยอดเปิดดู ${v.c} ครั้ง
-          </small>
-
-          <small>
-            ราคาเริ่มต้นเฉลี่ย
-            ${avg ? fmt(avg) + ' บาท/เดือน' : '-'}
-          </small>
-        </div>
-      `;
-
+          <div class="pc">${fmt(v.n)} <span style="font-size:16px;font-weight:400">หอพัก</span></div>
+          <small>ราคาเริ่มต้นเฉลี่ย ${avg ? fmt(avg) + ' บาท/เดือน' : '-'}</small>
+        </div>`;
     }).join('')}
   </div>`
 );
 
-  // 4) พื้นที่ที่เคยเกิดน้ำท่วม (ระดับพื้นที่ ไม่ได้ตัดสินรายหอ)
-html += `
-<style>
-.f4-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
-.f4-head h2{font-size:19px;font-weight:600;margin:0;color:#1e293b}
-.f4-head p{font-size:13px;color:#94a3b8;margin:4px 0 0}
-.f4-tag{font-size:11px;color:#7c3aed;background:#f5f3ff;padding:5px 11px;border-radius:30px;white-space:nowrap}
-.f4-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.f4-zone{padding:20px;border-radius:15px;border:1px solid #e9eaf2;background:#fafbfe}
-.f4-zone.warn{background:#fffbf5;border-color:#f3e0c4}
-.f4-name{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#475569}
-.f4-dot{width:8px;height:8px;background:#8b5cf6;border-radius:50%}
-.f4-warn .f4-dot,.f4-zone.warn .f4-dot{background:#e8a44c}
-.f4-status{font-size:20px;font-weight:600;color:#252c43;margin:15px 0 6px}
-.f4-zone.warn .f4-status{color:#ad6b20}
-.f4-desc{font-size:13px;color:#64748b;line-height:1.7;margin:0}
-.f4-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid #f0f0f5}
-.f4-note{color:#94a3b8;font-size:12px;line-height:1.6}
-.f4-link{display:inline-flex;align-items:center;gap:9px;background:#7c3aed;color:white!important;text-decoration:none;padding:10px 15px;border-radius:10px;font-size:13px;font-weight:500;white-space:nowrap;transition:.2s}
-.f4-link:hover{background:#6d28d9;transform:translateY(-1px)}
-@media(max-width:600px){
-  .f4-grid{grid-template-columns:1fr}
-  .f4-zone{padding:16px}
-  .f4-bottom{align-items:flex-start;flex-direction:column}
-  .f4-status{font-size:18px}
-}
-</style>
-<section class="sec">
-  <div class="f4-head">
-    <div>
-      <h2>ข้อมูลประวัติน้ำท่วมในพื้นที่</h2>
-      <p>ข้อมูลประกอบการประเมินทำเลที่พักบริเวณมหาวิทยาลัยพะเยา</p>
-    </div>
-    <span class="f4-tag">ข้อมูลระดับพื้นที่</span>
-  </div>
-  <div class="f4-grid">
-    <div class="f4-zone">
-      <div class="f4-name">
-        <span class="f4-dot"></span> ฝั่งมหาวิทยาลัย
-      </div>
-      <div class="f4-status">ควรตรวจสอบรายพื้นที่</div>
-      <p class="f4-desc">
-        ควรพิจารณาระดับพื้นที่และแนวลำน้ำบริเวณใกล้เคียง
-        เนื่องจากยังไม่มีข้อมูลยืนยันความปลอดภัยของทุกพื้นที่
-      </p>
-    </div>
-    <div class="f4-zone warn">
-      <div class="f4-name">
-        <span class="f4-dot"></span> ฝั่งตรงข้ามมหาวิทยาลัย
-      </div>
-      <div class="f4-status">มีประวัติได้รับผลกระทบจากน้ำท่วม</div>
-      <p class="f4-desc">
-        บางบริเวณเคยได้รับผลกระทบจากน้ำล้นห้วยแม่กาหลวง
-        และน้ำป่าไหลหลากในช่วงที่มีฝนตกหนัก
-      </p>
-    </div>
-  </div>
-  <div class="f4-bottom">
-    <div class="f4-note">
-      อ้างอิง: Phayao Flood Map · ArcGIS<br>
-      ข้อมูลดังกล่าวเป็นประวัติระดับพื้นที่ ไม่ใช่ผลการประเมินความเสี่ยงของหอพักรายแห่ง
-    </div>
-    <a class="f4-link"
-      href="https://www.arcgis.com/apps/dashboards/7cd8233b5db54ff3b5c453d3d1bb42cc"
-      target="_blank" rel="noopener noreferrer">
-      เปิดแผนที่ข้อมูลน้ำท่วม <span>↗</span>
-    </a>
-  </div>
-</section>`;
+  
+  // 4) แผนที่ข้อมูลน้ำท่วมจากผู้ให้บริการภายนอก (ไม่ใช่การประเมินรายหอพัก)
+  html += `
+ <style>
+ .flood-head{margin-bottom:16px}
+ .flood-head h2{margin:0;font-size:19px;font-weight:600;color:var(--ink)}
+ .flood-head p{margin:3px 0 0;color:var(--mute);font-size:13px}
+ .flood-map{width:100%;height:470px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#f8fafc}
+ .flood-map iframe{display:block;width:100%;height:100%;border:0}
+ .flood-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+ .flood-footer p{margin:0;font-size:12px;color:var(--mute);line-height:1.6}
+ .flood-footer a{font-size:13px;text-decoration:none;color:var(--p);font-weight:500}
+ .flood-footer a:hover{text-decoration:underline}
+ @media(max-width:600px){.flood-map{height:380px}}
+ </style>
+ <section class="sec">
+   <div class="flood-head">
+     <h2>แผนที่ความเสี่ยงน้ำท่วม</h2>
+     <p>ตรวจสอบข้อมูลบนแผนที่ประกอบการเลือกทำเลที่พัก (วิธีใช้ : กดค้นหา 'มหาวิทยาลัยพะเยา'และเลือก layout ทางมุมขวา)</p>
+   </div>
+   <div class="flood-map">
+     <iframe
+       title="แผนที่ความเสี่ยงน้ำท่วมบน ArcGIS"
+       src="https://www.arcgis.com/apps/dashboards/7cd8233b5db54ff3b5c453d3d1bb42cc"
+       loading="lazy"
+       allowfullscreen
+       referrerpolicy="strict-origin-when-cross-origin"></iframe>
+   </div>
+   <div class="flood-footer">
+     <p>แหล่งข้อมูล : กรมชลประทาน | ฝ่ายประยุกต์ข้อมูล GIS ศูนย์พัฒนาภูมิสารสนเทศ และ ฝ่ายผลิตชั้นข้อมูลภูมิสารสนเทศ สำนักผลิตภัณฑ์ภูมิสารสนเทศ ปี 2556</p>
+     <a href="https://www.arcgis.com/apps/dashboards/7cd8233b5db54ff3b5c453d3d1bb42cc"
+        target="_blank" rel="noopener noreferrer">เปิดแผนที่เต็มหน้า ↗</a>
+   </div>
+ </section>`;
   // 5) ช่วงราคา
   const bks = BK.map(b => ({ ...b, items: L.filter(d => price(d) >= b.lo && price(d) <= b.hi).sort((x, y) => clicks(y) - clicks(x)) }));
   const tc = bks.map(b => b.items.reduce((t, d) => t + clicks(d), 0)), best = tc.indexOf(Math.max(...tc)), tsum = tc.reduce((a, b) => a + b, 0);

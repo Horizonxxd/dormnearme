@@ -303,16 +303,17 @@
             cursor: pointer;
             line-height: 1;
         }
-        /* ตรวจสอบความครบถ้วนของข้อมูล โดยคงรูปแบบหน้าเดิม */
-        .field-feedback {display:block; color:#dc2626; font-size:12px; line-height:1.55; margin-top:4px;}
-        .field-feedback[hidden] {display:none;}
+        /* ตรวจสอบความครบถ้วนของข้อมูล: แจ้งเตือนเฉพาะในกล่องสรุป */
+        /* คงแจ้งเตือนเฉพาะเบอร์โทรศัพท์ใต้ช่องกรอก */
+        .field-feedback {display:none !important;}
+        #phone-error {display:none; color:#dc2626; font-size:12px; line-height:1.5; margin-top:4px;}
+        #phone-input.phone-invalid {border-color:#fca5a5;}
         .form-input.is-invalid, .multi-select-list.is-invalid, .checkbox-block.is-invalid,
-        .upload-group.is-invalid .btn-large-upload {border:1px solid #fca5a5;}
-        .form-status {font-size:12px; color:#92400e; background:#fffbeb; border:1px solid #fde68a;
-            padding:10px 12px; border-radius:9px; line-height:1.65; margin-top:14px;}
+        .upload-group.is-invalid .btn-large-upload {border-color:#ddd; box-shadow:none;}
+        .form-status {font-size:11.5px; color:#92400e; background:#fffbeb; border:1px solid #fde68a;
+            padding:8px 11px; border-radius:9px; line-height:1.5; margin-top:12px;}
         .form-status.is-complete {color:#166534; background:#f0fdf4; border-color:#bbf7d0;}
-        .form-status strong {font-weight:500;}
-        .form-status .missing-list {margin:4px 0 0; padding-left:18px;}
+        .form-status strong {font-weight:600;}
     </style>
 <script src="ui-kit.js"></script>
 
@@ -541,47 +542,47 @@
               message: 'กรุณากรอกกฎของหอพัก (ถ้าไม่มี ระบุว่า ไม่มีกฎเพิ่มเติม)' }
         ];
 
-        // แสดงจุดที่ยังขาดใต้แต่ละช่อง พร้อมสรุปภาพรวมโดยไม่เปิดปุ่มบันทึกก่อนครบ
+        // สรุปข้อมูลที่ยังขาดในกล่องแจ้งเตือนเพียงจุดเดียว
         function updateFormValidation() {
             const missing = [];
             for (const field of fieldChecks) {
                 const target = document.getElementById(field.target);
                 const valid = field.check();
-                const message = typeof field.message === 'function' ? field.message() : field.message;
-                let feedback = document.getElementById('feedback-' + field.id);
-                if (!feedback) {
-                    feedback = document.createElement('small');
-                    feedback.id = 'feedback-' + field.id;
-                    feedback.className = 'field-feedback';
-                    const container = target.closest('.form-group') || target.parentElement;
-                    container.appendChild(feedback);
-                }
-                feedback.textContent = valid ? '' : message;
-                feedback.hidden = valid;
-                target.classList.toggle('is-invalid', !valid);
+                target.classList.toggle('is-invalid', false);
                 if (!valid) missing.push(field.label);
             }
-            // ตรวจสอบการเข้าสู่ระบบด้วย เพื่อป้องกันการบันทึกโดยไม่ได้ล็อกอิน
+
             const loggedIn = !!auth.currentUser;
             const complete = missing.length === 0 && loggedIn;
             saveBtn.disabled = isSaving || !complete;
             statusEl.classList.toggle('is-complete', complete);
+
             if (complete) {
-                statusEl.textContent = '✓ ข้อมูลครบทุกช่อง สามารถกดบันทึกข้อมูลได้';
+                statusEl.innerHTML = '✓ ข้อมูลครบถ้วนแล้ว สามารถกดบันทึกข้อมูลได้';
             } else {
-                const pieces = [];
-                if (missing.length) pieces.push(`กรุณากรอกข้อมูลอีก ${missing.length} จุด: ${missing.join(' • ')}`);
-                if (!loggedIn) pieces.push('กรุณาเข้าสู่ระบบด้วย Google');
-                statusEl.textContent = pieces.join(' | ');
+                const missingText = missing.length ? `ยังขาด ${missing.length} รายการ: ${missing.join(' · ')}` : '';
+                const loginNote = !loggedIn ? 'กรุณาเข้าสู่ระบบด้วย Google' : '';
+                statusEl.textContent = [missingText, loginNote].filter(Boolean).join(' | ');
             }
             return complete;
         }
 
+        // แจ้งเตือนเบอร์ที่ไม่ถูกต้องเฉพาะใต้ช่องเบอร์โทร (ไม่เตือนทันทีขณะเริ่มพิมพ์)
+        function updatePhoneWarning(onBlur = false) {
+            const value = phoneInput.value.trim();
+            const result = validateThaiPhone(value);
+            const show = !!value && !result.ok && (onBlur || value.length >= 9);
+            phoneError.textContent = show ? result.msg : '';
+            phoneError.style.display = show ? 'block' : 'none';
+            phoneInput.classList.toggle('phone-invalid', show);
+        }
+
         phoneInput.addEventListener('input', () => {
             phoneInput.value = phoneInput.value.replace(/\D/g, '');
-            phoneError.style.display = 'none'; // ข้อความตรวจสอบรวมแสดงใต้ช่องเดียวกัน
+            updatePhoneWarning();
             updateFormValidation();
         });
+        phoneInput.addEventListener('blur', () => updatePhoneWarning(true));
         document.querySelectorAll('.form-input').forEach(el => {
             if (el !== phoneInput) el.addEventListener('input', updateFormValidation);
         });

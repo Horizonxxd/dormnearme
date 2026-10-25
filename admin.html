@@ -140,7 +140,7 @@ a.l{color:var(--ink);text-decoration:none}a.l:hover{color:var(--p)}.empty{text-a
 
 <script type="module">
 import { auth, app } from './auth.js';
-import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, deleteField, query, orderBy, documentId, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, deleteField, writeBatch, serverTimestamp, query, orderBy, documentId, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 if (!window.showToast) { console.error('ไม่พบ ui-kit.js — ใช้ popup สำรองของเบราว์เซอร์'); window.showToast = m => window.alert(m); window.confirmBox = async m => window.confirm(m); }
 const db = getFirestore(app);
@@ -267,17 +267,41 @@ $('bell').onclick = () => { localStorage.setItem('adminSeenTs', Date.now()); see
 const ok = (m, t = 'success') => { try { window.showToast(m, t); } catch (e) { console.log(m); } };
 window.approveDorm = async (id) => {
   try {
-    const pendingRef = doc(db, "pendingListings", id);
+    const pendingRef = doc(db, 'pendingListings', id);
     const pendingSnap = await getDoc(pendingRef);
-    if (pendingSnap.exists()) {
-      const data = pendingSnap.data();
-      if (!await confirmBox('ยืนยันการอนุมัติหอพัก "' + (data.name || '') + '" ให้แสดงบนเว็บไซต์?')) return;
-      delete data.status;
-      await setDoc(doc(db, "listings", id), data);
-      await deleteDoc(pendingRef);
-      ok('อนุมัติหอพักเรียบร้อยแล้ว');
-    } else { window.showToast("ไม่พบข้อมูลหอพักนี้", 'error'); }
-  } catch (e) { console.error("Approve Error:", e); window.showToast("เกิดข้อผิดพลาดในการอนุมัติหอพัก", 'error'); }
+    if (!pendingSnap.exists()) {
+      window.showToast('ไม่พบข้อมูลหอพักนี้', 'error');
+      return;
+    }
+    const data = pendingSnap.data();
+    if (!await confirmBox('ยืนยันการอนุมัติหอพัก "' + (data.name || '') + '" ให้แสดงบนเว็บไซต์?')) return;
+
+    // Approving a dorm and notifying its owner are committed together.
+    // A missing/invalid createdBy on older submissions does not block approval.
+    const ownerUid = typeof data.createdBy === 'string' ? data.createdBy.trim() : '';
+    const validOwnerUid = ownerUid.length > 0 && ownerUid.length <= 128 && !ownerUid.includes('/');
+    const approvedData = {...data};
+    delete approvedData.status;
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'listings', id), approvedData);
+    batch.delete(pendingRef);
+    if (validOwnerUid) {
+      batch.set(doc(db, 'userNotifications', ownerUid, 'items', 'approved_' + id), {
+        type: 'dorm_approved',
+        dormId: id,
+        dormName: String(data.name || 'หอพักของคุณ').slice(0, 180),
+        read: false,
+        createdAt: serverTimestamp()
+      });
+    }
+    await batch.commit();
+    ok(validOwnerUid
+      ? 'อนุมัติหอพักและส่งการแจ้งเตือนถึงเจ้าของแล้ว'
+      : 'อนุมัติหอพักแล้ว (รายการเก่าไม่มีรหัสเจ้าของ จึงไม่สามารถส่งแจ้งเตือนได้)');
+  } catch (e) {
+    console.error('Approve Error:', e);
+    window.showToast('อนุมัติไม่สำเร็จ กรุณาตรวจสอบ Firestore Rules สำหรับการแจ้งเตือน', 'error');
+  }
 };
 window.rejectPending = async (id) => {
   if (await confirmBox("ยืนยันการปฏิเสธและลบรายการคำขอนี้?")) {
@@ -418,13 +442,22 @@ function renderTable() {
   const shownViews = rows.reduce((sum,d) => sum + viewsOf(d), 0);
   $('count-line').textContent = `หอพัก ${rows.length} / ${listings.length} แห่ง · ยอดเข้าชมรวม ${allViews.toLocaleString('th-TH')} ครั้ง${q ? ` · ผลการค้นหา ${shownViews.toLocaleString('th-TH')} ครั้ง` : ''}`;
   $('approved-table').innerHTML = rows.map(d => `<tr>
-    <td><a class="l" target="_blank" rel="noopener" href="details.html?id=${encodeURIComponent(d.id)}">${esc(d.name)}</a></td>
+    <td><a class="l" target="_blank" rel="noopener" href="details.html?id=${encodeURIComponent(d.id)}&from=admin">${esc(d.name)}</a></td>
     <td>${esc(d.zone)}</td><td>${esc(priceOf(d))}</td>
     <td class="dorm-clicks">${viewsOf(d).toLocaleString('th-TH')}</td>
-    <td><div class="dorm-actions"><button type="button" class="b edit" data-edit-dorm="${esc(d.id)}">แก้ไข</button><button class="b no" onclick="deleteDorm('${d.id}')">ลบ</button></div></td>
+    <td><div class="dorm-actions"><button type="button" class="b edit" data-edit-dorm="${esc(d.id)}">แก้ไข</button><button class="b no" data-delete-dorm="${esc(d.id)}">ลบ</button></div></td>
   </tr>`).join('') || '<tr><td colspan="5" class="empty">ไม่พบหอพัก</td></tr>';
 }
 $('q').addEventListener('input', renderTable);
+document.addEventListener('click', event => {
+  const actions = {'delete-dorm': 'deleteDorm', 'approve-dorm': 'approveDorm', 'reject-pending': 'rejectPending', 'reopen-report': 'reopenReport', 'delete-report': 'deleteReport', 'resolve-report': 'resolveReport'};
+  const button = event.target.closest('button');
+  if (!button) return;
+  for (const [attribute, fn] of Object.entries(actions)) {
+    if (button.hasAttribute('data-' + attribute)) { window[fn](button.getAttribute('data-' + attribute)); break; }
+  }
+});
+
 
 function load() {
   onSnapshot(collection(db, "pendingListings"), snap => {
@@ -433,8 +466,8 @@ function load() {
     if (snap.empty) { list.innerHTML = '<div class="empty">ไม่มีรายการรอการตรวจสอบ 🎉</div>'; return; }
     list.innerHTML = snap.docs.map(s => { const d = s.data(), isNew = ms(d.timestamp) > seen;
       return `<div class="pend ${isNew ? 'new' : ''}"><div class="in"><b>${esc(d.name)}</b>${isNew ? '<span class="tag-new">ใหม่</span>' : ''}<small>โซน: ${esc(d.zone)} · ${esc(priceOf(d))}</small></div>
-      <a class="b v" target="_blank" href="details.html?id=${s.id}">ดูตัวอย่าง</a>
-      <button class="b ok" onclick="approveDorm('${s.id}')">อนุมัติ</button><button class="b no" onclick="rejectPending('${s.id}')">ปฏิเสธ</button></div>`; }).join('');
+      <a class="b v" target="_blank" href="details.html?id=${encodeURIComponent(s.id)}&from=admin">ดูตัวอย่าง</a>
+      <button class="b ok" data-approve-dorm="${esc(s.id)}">อนุมัติ</button><button class="b no" data-reject-pending="${esc(s.id)}">ปฏิเสธ</button></div>`; }).join('');
     // แจ้งเตือนเมื่อมีคำขอใหม่เข้ามาขณะเปิดหน้านี้อยู่
     snap.docChanges().forEach(c => { if (c.type === 'added' && ms(c.doc.data().timestamp) > Date.now() - 15000) showToast('มีคำขอหอพักใหม่เข้ามา: ' + (c.doc.data().name || ''), 'info', 2500); });
   });
@@ -476,10 +509,10 @@ function load() {
     const open = all.filter(d => !isDone(d)), done = all.filter(isDone);
     reportN = open.length; $('stat-reports').textContent = open.length; updateBadge();
     const row = d => { const fin = isDone(d), isNew = !fin && ms(d.timestamp ?? d.createdAt) > seen;
-      return `<tr style="${fin ? 'opacity:.7' : ''}"><td><b style="color:var(--p)">🏢 ${d.dormId ? `<a class="l" target="_blank" href="details.html?id=${esc(d.dormId)}">${esc(d.dormName)}</a>` : esc(d.dormName)}</b>${isNew ? '<span class="tag-new">ใหม่</span>' : ''}${fin ? '<span class="tag-done">แก้ไขแล้ว</span>' : '<span class="tag-wait">รอแก้ไข</span>'}
+      return `<tr style="${fin ? 'opacity:.7' : ''}"><td><b style="color:var(--p)">🏢 ${d.dormId ? `<a class="l" target="_blank" href="details.html?id=${encodeURIComponent(d.dormId)}&from=admin">${esc(d.dormName)}</a>` : esc(d.dormName)}</b>${isNew ? '<span class="tag-new">ใหม่</span>' : ''}${fin ? '<span class="tag-done">แก้ไขแล้ว</span>' : '<span class="tag-wait">รอแก้ไข</span>'}
       <div style="font-size:13px;margin-top:3px">${esc(d.reportText)}</div><small style="color:#94a3b8">จาก: ${esc(d.userEmail)}</small></td>
-      <td style="text-align:center;white-space:nowrap">${fin ? `<button class="b v" onclick="reopenReport('${d.id}')">เปิดใหม่</button> <button class="b no" onclick="deleteReport('${d.id}')">ลบ</button>`
-        : `<button class="b rs" onclick="resolveReport('${d.id}')">ทำเครื่องหมายว่า<br>แก้ไขแล้ว</button>`}</td></tr>`; };
+      <td style="text-align:center;white-space:nowrap">${fin ? `<button class="b v" data-reopen-report="${esc(d.id)}">เปิดใหม่</button> <button class="b no" data-delete-report="${esc(d.id)}">ลบ</button>`
+        : `<button class="b rs" data-resolve-report="${esc(d.id)}">ทำเครื่องหมายว่า<br>แก้ไขแล้ว</button>`}</td></tr>`; };
     $('report-table-body').innerHTML = (open.map(row).join('') || '<tr><td class="empty">ไม่มีรายงานที่รอแก้ไข 🎉</td></tr>')
       + (done.length ? `<tr><td colspan="2" style="padding:14px 8px 4px;color:#64748b;font-size:13px;font-weight:500">แก้ไขแล้ว (${done.length})</td></tr>` + done.map(row).join('') : '');
   }, e => { $('report-table-body').innerHTML = `<tr><td style="color:red">Error: ${esc(e.message)}</td></tr>`; });

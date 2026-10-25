@@ -258,6 +258,8 @@
             line-height: 1.7;
             font-size: 15px;
             margin: 0;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
         }
 
         /* Amenities Grid Cards */
@@ -833,6 +835,13 @@
             return svgMap[key] || '•';
         }
 
+        // แสดงรายละเอียดและกฎจาก Firestore เป็นข้อความ ไม่ตีความเป็น HTML
+        function escapeDormText(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+        }
+
         async function loadDormData() {
             if (!dormId) {
                 document.getElementById('details-content').innerHTML = "<h2 style='text-align:center;'>ไม่พบรหัสหอพัก</h2>";
@@ -900,6 +909,14 @@
                         <div class="details-grid-layout">
                             <!-- Left Details Container -->
                             <div>
+                                <!-- รายละเอียดหอพักจากฟิลด์ details -->
+                                ${String(data.details ?? '').trim() ? `
+                                <div class="section-block">
+                                    <div class="section-title">รายละเอียดหอพัก</div>
+                                    <p class="description-text">${escapeDormText(data.details)}</p>
+                                </div>
+                                ` : ''}
+
                                 <!-- Amenities Block -->
                                 <div class="section-block">
                                     <div class="section-title">สิ่งอำนวยความสะดวก</div>
@@ -927,6 +944,14 @@
                                         `}
                                     </div>
                                 </div>
+
+                                <!-- กฎของหอพักจากฟิลด์ rules -->
+                                ${String(data.rules ?? '').trim() ? `
+                                <div class="section-block">
+                                    <div class="section-title">กฎของหอพัก</div>
+                                    <p class="description-text">${escapeDormText(data.rules)}</p>
+                                </div>
+                                ` : ''}
 
                                 <!-- Map & Location Block -->
                                 <div class="section-block">
