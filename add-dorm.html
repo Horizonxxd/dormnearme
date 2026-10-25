@@ -381,10 +381,16 @@
                 <!-- Google Maps Link Field -->
                 <div class="form-group">
                     <label class="form-label">ลิงก์ Google Maps</label>
-                    <input type="url" id="dorm-map-url" class="form-input"
-                        placeholder="https://maps.app.goo.gl/... หรือ https://www.google.com/maps/place/...">
-                    <small style="color:#666; font-size:12px;">รองรับลิงก์พิกัดจาก Google Maps (รวมถึงลิงก์ย่อ เช่น
-                        https://maps.app.goo.gl/...)</small>
+                    <input type="text" id="dorm-map-url" class="form-input" inputmode="url"
+                        placeholder="วางลิงก์ Google Maps จากมือถือหรือคอมพิวเตอร์">
+                    <small style="color:#666; font-size:12px;">รองรับลิงก์ Google Maps ทั้งแบบเต็มและแบบย่อ เช่น maps.app.goo.gl</small>
+                    <details id="map-coordinates-fallback" style="margin-top:9px; border-radius:8px; background:#f7f5ff; padding:9px 12px;">
+                        <summary style="color:#6d28d9; cursor:pointer; font-size:13px; font-weight:500;">ลิงก์จากมือถือบันทึกไม่ได้? กรอกพิกัดสำรอง</summary>
+                        <div style="font-size:12px; color:#555; margin:8px 0 6px;">เปิด Google Maps แล้วแตะค้างที่ตำแหน่งหอพักบนแผนที่เพื่อปักหมุด จากนั้นคัดลอกละติจูดและลองจิจูดมาใส่ด้านล่าง (ไม่ใช่พิกัดตัวอย่าง)</div>
+                        <input type="text" id="dorm-map-coordinates" class="form-input" inputmode="decimal"
+                            autocomplete="off" placeholder="ตัวอย่างรูปแบบ: 19.029, 99.926" aria-label="พิกัดละติจูดและลองจิจูด">
+                        <small style="color:#666;font-size:12px;">หากใส่พิกัด ระบบจะใช้พิกัดนี้ในการคำนวณระยะทางและบันทึกหอพัก โดยคงลิงก์ Google Maps เดิมไว้</small>
+                    </details>
                 </div>
             </div>
 
@@ -476,7 +482,7 @@
 
         if (!window.showToast) { console.error('ไม่พบ ui-kit.js — ใช้ popup สำรองของเบราว์เซอร์'); window.showToast = m => window.alert(m); window.confirmBox = async m => window.confirm(m); }
         // แทน alert() ทั้งหน้าด้วย Toast กลางจอ
-        const alert = (m) => showToast(m, /เรียบร้อย/.test(m) ? 'success' : 'error', 2200);
+        const alert = (m) => showToast(m, /เรียบร้อย/.test(m) ? 'success' : 'error', /ลิงก์นี้ยังแปลงเป็นพิกัดไม่ได้/.test(m) ? 8000 : 2200);
 
         let selectedFiles = [];
         const actualBtn = document.getElementById('actual-upload');
@@ -499,6 +505,32 @@
             return { ok: false, msg: 'กรุณากรอกเบอร์โทรไทยที่ถูกต้อง (9–10 หลัก)' };
         }
 
+        // Accept a URL copied from the mobile share sheet, including surrounding text.
+        function normalizeMapInput(value) {
+            const raw = String(value || '').trim();
+            const match = raw.match(/https?:\/\/[^\s<>"']+/i);
+            return match ? match[0].replace(/[),.;]+$/, '') : raw;
+        }
+        function parseManualCoords(value) {
+            const m = String(value || '').trim().match(/^([+-]?\d{1,2}(?:\.\d+)?)\s*[,，]\s*([+-]?\d{1,3}(?:\.\d+)?)$/);
+            if (!m) return null;
+            const lat = Number(m[1]), lng = Number(m[2]);
+            return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
+                ? { lat, lng } : null;
+        }
+        function validMapLink(value) {
+            const raw = normalizeMapInput(value);
+            if (parseManualCoords(raw)) return true;
+            try {
+                const u = new URL(raw);
+                return u.protocol === 'https:' &&
+                    (u.hostname === 'maps.app.goo.gl' || u.hostname === 'goo.gl' ||
+                     u.hostname === 'share.google' || u.hostname === 'google.com' ||
+                     u.hostname.endsWith('.google.com') || u.hostname === 'google.co.th' ||
+                     u.hostname.endsWith('.google.co.th'));
+            } catch { return false; }
+        }
+
         const fieldChecks = [
             { id: 'images', label: 'รูปภาพหอพัก', target: 'upload-group',
               check: () => selectedFiles.length >= 1 && selectedFiles.length <= 10,
@@ -507,20 +539,10 @@
               check: () => !!document.getElementById('dorm-name').value.trim(), message: 'กรุณากรอกชื่อหอพัก' },
             { id: 'details', label: 'รายละเอียด', target: 'dorm-details',
               check: () => !!document.getElementById('dorm-details').value.trim(), message: 'กรุณากรอกรายละเอียดหอพัก' },
-            { id: 'map', label: 'ลิงก์ Google Maps', target: 'dorm-map-url',
-              check: () => {
-                const v = document.getElementById('dorm-map-url').value.trim();
-                if (!v) return false;
-                if (/^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(v)) {
-                    const [lat, lng] = v.split(',').map(Number);
-                    return Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-                }
-                try { const u = new URL(v); return u.protocol === 'https:' &&
-                    (u.hostname === 'maps.app.goo.gl' || u.hostname === 'goo.gl' ||
-                     u.hostname === 'google.com' || u.hostname.endsWith('.google.com') ||
-                     u.hostname === 'google.co.th' || u.hostname.endsWith('.google.co.th')); }
-                catch { return false; }
-              }, message: 'กรุณาใส่ลิงก์ Google Maps ที่ถูกต้อง' },
+            { id: 'map', label: 'ลิงก์ Google Maps หรือพิกัด', target: 'dorm-map-url',
+              check: () => validMapLink(document.getElementById('dorm-map-url').value) ||
+                  !!parseManualCoords(document.getElementById('dorm-map-coordinates').value),
+              message: 'กรุณาใส่ลิงก์ Google Maps หรือพิกัดที่ถูกต้อง' },
             { id: 'amenities', label: 'สิ่งอำนวยความสะดวก', target: 'room-amenities',
               check: () => !!document.querySelector('#room-amenities input:checked'),
               message: 'กรุณาเลือกสิ่งอำนวยความสะดวกอย่างน้อย 1 รายการ' },
@@ -583,6 +605,7 @@
             updateFormValidation();
         });
         phoneInput.addEventListener('blur', () => updatePhoneWarning(true));
+        document.getElementById('dorm-map-coordinates').addEventListener('input', updateFormValidation);
         document.querySelectorAll('.form-input').forEach(el => {
             if (el !== phoneInput) el.addEventListener('input', updateFormValidation);
         });
@@ -635,13 +658,11 @@
         // 1. Extract Lat/Lng from Google Maps URLs or direct Lat,Lng text (Pin location prioritized over camera viewport)
         function extractLatLngFromUrl(mapUrl) {
             if (!mapUrl) return null;
-            const str = mapUrl.trim();
+            const str = normalizeMapInput(mapUrl);
 
-            // Direct Lat, Lng format (e.g. "19.028, 99.924")
-            const directCoords = str.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
-            if (directCoords) {
-                return { lat: parseFloat(directCoords[1]), lng: parseFloat(directCoords[2]) };
-            }
+            // Direct Lat, Lng format (supports integer or decimal coordinates)
+            const directCoords = parseManualCoords(str);
+            if (directCoords) return directCoords;
 
             // Priority 1: Exact Marker / Pin coordinates in Protobuf data (!3dLAT!4dLNG)
             const pinMatch = str.match(/!3d(-?\d+\.\d+).*?!4d(-?\d+\.\d+)/) ||
@@ -899,7 +920,9 @@ async function calculatePOIDistances(dormLat, dormLng) {
             if (isSaving || !updateFormValidation()) return;
             const phone = phoneInput.value.trim();
             const dormName = document.getElementById('dorm-name').value.trim();
-            const mapUrl = document.getElementById('dorm-map-url').value.trim();
+            const mapUrlInput = document.getElementById('dorm-map-url').value.trim();
+            const mapUrl = normalizeMapInput(mapUrlInput);
+            const manualCoords = parseManualCoords(document.getElementById('dorm-map-coordinates').value);
 
             // Validation Checks
             if (!auth.currentUser) {
@@ -910,8 +933,8 @@ async function calculatePOIDistances(dormLat, dormLng) {
                 alert("กรุณากรอกชื่อหอพัก");
                 return;
             }
-            if (!mapUrl) {
-                alert("กรุณาระบุลิงก์ Google Maps");
+            if (!validMapLink(mapUrl) && !manualCoords) {
+                alert("กรุณาระบุลิงก์ Google Maps หรือพิกัดหอพักที่ถูกต้อง");
                 return;
             }
 
@@ -923,21 +946,39 @@ async function calculatePOIDistances(dormLat, dormLng) {
             saveBtn.disabled = true;
 
             // 1. Try extracting coordinates directly. If missing, resolve via Cloud Function for ANY URL.
-            let coords = extractLatLngFromUrl(mapUrl);
+            let coords = manualCoords || extractLatLngFromUrl(mapUrl);
+            let mapResolveError = null;
+            let resolvedUrl = mapUrl;
 
-            if (!coords && mapUrl.startsWith('http')) {
+            if (!coords && /^https:\/\//i.test(mapUrl)) {
                 saveBtn.innerText = "กำลังแปลงลิงก์ Google Maps...";
                 try {
                     const result = await resolveMapUrlCall({ url: mapUrl });
-                    const targetUrl = result.data.longUrl || mapUrl;
-                    coords = extractLatLngFromUrl(targetUrl);
+                    const response = result.data || {};
+                    resolvedUrl = response.longUrl || response.resolvedUrl || response.url || mapUrl;
+                    coords = extractLatLngFromUrl(resolvedUrl);
+                    if (!coords && response.coordinates) {
+                        const point = response.coordinates;
+                        const lat = Number(point.lat ?? point.latitude);
+                        const lng = Number(point.lng ?? point.longitude);
+                        if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+                            coords = { lat, lng };
+                        }
+                    }
                 } catch (err) {
-                    console.error("Failed to resolve short URL:", err);
+                    mapResolveError = err;
+                    console.error("resolveMapUrl failed:", err.code, err.message, err);
                 }
             }
 
             if (!coords) {
-                alert("ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ได้ กรุณาตรวจสอบลิงก์อีกครั้ง");
+                const errorHint = mapResolveError
+                    ? `\nรหัสปัญหา: ${mapResolveError.code || 'unknown'} (${mapResolveError.message || 'ไม่ทราบสาเหตุ'})`
+                    : '\nลิงก์นี้ไม่มีพิกัดที่ระบบอ่านได้';
+                const fallbackBox = document.getElementById('map-coordinates-fallback');
+                fallbackBox.open = true;
+                alert('ลิงก์นี้ยังแปลงเป็นพิกัดไม่ได้' + errorHint +
+                    '\nกรุณากดหัวข้อ "กรอกพิกัดสำรอง" ใต้ช่อง Google Maps แล้วใส่พิกัดจริงของหอพัก จากนั้นกดบันทึกอีกครั้ง');
                 isSaving = false;
                 saveBtn.innerText = "บันทึกข้อมูล";
                 updateFormValidation();
@@ -1001,7 +1042,9 @@ async function calculatePOIDistances(dormLat, dormLng) {
                 const data = {
                     name: dormName,
                     details: document.getElementById('dorm-details').value.trim(),
-                    mapUrl: mapUrl,
+                    mapUrl: validMapLink(mapUrl) && !parseManualCoords(mapUrl)
+                        ? mapUrl
+                        : `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`,
                     location: new GeoPoint(coords.lat, coords.lng),
                     status: "pending",
                     price: priceValue,
