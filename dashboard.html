@@ -148,34 +148,30 @@ L.forEach(d => {
 });
 
 // แสดงทั้งสองฝั่ง แม้ฝั่งใดฝั่งหนึ่งยังไม่มีรายการ
+
 const zones = ['ฝั่งตรงข้ามมอ', 'ฝั่งมอ'];
-const zs = zones.map(k => [k, Z[k] || { n: 0, ps: [] }]);
+const zs = zones.map(k => [k, Z[k] || { n: 0 }]);
 const zoneCount = zs.reduce((sum, [, v]) => sum + v.n, 0);
 const zcls = k => k === 'ฝั่งมอ' ? 'A' : 'B';
 
 html += sec(
   2,
   'จำนวนหอพักแยกตามโซน',
-  'แสดงจำนวนหอพักในระบบและราคาเริ่มต้นเฉลี่ยของแต่ละฝั่ง',
-  zoneCount
-    ? `ในระบบมีหอพักฝั่งตรงข้ามมอ <b>${fmt(zs[0][1].n)} แห่ง</b> และฝั่งมอ <b>${fmt(zs[1][1].n)} แห่ง</b>`
-    : 'ยังไม่มีข้อมูลหอพักที่ระบุโซน',
+  'จำนวนหอพักที่มีข้อมูลอยู่ในระบบ',
+  `หอพักทั้งหมด <b>${fmt(zoneCount)} แห่ง</b> แบ่งเป็น 2 โซน`,
   `<div class="two">
-    ${zs.map(([k, v]) => {
-      const avg = v.ps.length
-        ? Math.round(v.ps.reduce((a, b) => a + b, 0) / v.ps.length)
-        : 0;
-      return `
-        <div class="zc ${zcls(k)}">
-          <div class="nm">${esc(k)}</div>
-          <div class="pc">${fmt(v.n)} <span style="font-size:16px;font-weight:400">หอพัก</span></div>
-          <small>ราคาเริ่มต้นเฉลี่ย ${avg ? fmt(avg) + ' บาท/เดือน' : '-'}</small>
-        </div>`;
-    }).join('')}
+    ${zs.map(([k, v]) => `
+      <div class="zc ${zcls(k)}">
+        <div class="nm">${esc(k)}</div>
+        <div class="pc">
+          ${fmt(v.n)}
+          <span style="font-size:16px;font-weight:400">หอพัก</span>
+        </div>
+      </div>
+    `).join('')}
   </div>`
 );
 
-  
   // 4) แผนที่ข้อมูลน้ำท่วมจากผู้ให้บริการภายนอก (ไม่ใช่การประเมินรายหอพัก)
   html += `
  <style>
